@@ -34,17 +34,21 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const forwardedHost = request.headers.get("x-forwarded-host");
-      const protocol = request.headers.get("x-forwarded-proto") || "https";
-      const redirectUrl = new URL(next, `${protocol}://${forwardedHost || requestUrl.host}`);
+      // Use the production URL from environment or construct from request
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+      const redirectUrl = appUrl 
+        ? `${appUrl}${next}`
+        : `${requestUrl.protocol}//${requestUrl.host}${next}`;
 
-      return NextResponse.redirect(redirectUrl.toString());
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
   // Return the user to an error page with instructions
-  const errorUrl = new URL("/auth/login", requestUrl.origin);
-  errorUrl.searchParams.set("error", "Could not authenticate user");
-  return NextResponse.redirect(errorUrl.toString());
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const errorUrl = appUrl
+    ? `${appUrl}/auth/login?error=Could not authenticate user`
+    : `${requestUrl.origin}/auth/login?error=Could not authenticate user`;
+  
+  return NextResponse.redirect(errorUrl);
 }
-
