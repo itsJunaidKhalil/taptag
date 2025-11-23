@@ -57,19 +57,33 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      // Get the correct redirect URL from environment or use current origin
-      const redirectUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+      // Get the correct redirect URL - prioritize environment variable
+      const redirectUrl = typeof window !== "undefined" 
+        ? (process.env.NEXT_PUBLIC_APP_URL || window.location.origin)
+        : process.env.NEXT_PUBLIC_APP_URL || "";
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log("OAuth redirect URL:", `${redirectUrl}/auth/callback`);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${redirectUrl}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("OAuth error:", error);
+        throw error;
+      }
+
+      // The redirect happens automatically
     } catch (error: any) {
-      setError(error.message);
+      console.error("Social login error:", error);
+      setError(error.message || "Failed to initiate OAuth login");
       setLoading(false);
     }
   };
