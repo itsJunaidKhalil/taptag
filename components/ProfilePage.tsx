@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import SocialButton from "./SocialButton";
 import Image from "next/image";
 
@@ -32,8 +32,9 @@ interface ProfilePageProps {
 
 export default function ProfilePageContent({ profile, links: initialLinks }: ProfilePageProps) {
   const [copied, setCopied] = useState(false);
-  const [links, setLinks] = useState<SocialLink[]>(initialLinks);
+  const [links, setLinks] = useState<SocialLink[]>(initialLinks || []);
   const [loadingLinks, setLoadingLinks] = useState(false);
+  const linksFetchedRef = useRef(false);
 
   // Fetch links dynamically to get latest updates
   useEffect(() => {
@@ -49,25 +50,31 @@ export default function ProfilePageContent({ profile, links: initialLinks }: Pro
         });
         if (response.ok) {
           const data = await response.json();
-          if (data.links) {
+          if (data.links && Array.isArray(data.links)) {
+            // Always update with fresh data from API
             setLinks(data.links);
+            linksFetchedRef.current = true;
           }
         }
       } catch (error) {
         console.error("Error fetching links:", error);
+        // Only use initialLinks as fallback if we've never successfully fetched
+        if (!linksFetchedRef.current && initialLinks && initialLinks.length > 0) {
+          setLinks(initialLinks);
+        }
       } finally {
         setLoadingLinks(false);
       }
     };
 
-    // Fetch links immediately
+    // Fetch links immediately on mount
     fetchLinks();
     
     // Set up polling for updates (every 3 seconds for faster updates)
     const interval = setInterval(fetchLinks, 3000);
 
     return () => clearInterval(interval);
-  }, [profile.username]);
+  }, [profile.username, initialLinks]);
 
   useEffect(() => {
     // Track profile view
