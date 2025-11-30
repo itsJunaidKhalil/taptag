@@ -9,6 +9,7 @@ A full-stack platform where users can create customizable profiles, share social
 - ✅ Social media links management
 - ✅ Dynamic public profile URLs: `/username`
 - ✅ VCF (contact card) download
+- ✅ QR Code generation and download
 - ✅ Analytics tracking (profile views, link clicks)
 - ✅ Theme customization
 - ✅ NFC keychain integration support
@@ -231,6 +232,17 @@ To integrate NFC keychains:
 1. Program your NFC keychain with the URL: `https://yourapp.com/username`
 2. When someone taps the NFC keychain, it will open the user's profile
 3. Analytics will automatically track the profile view
+
+## QR Code Integration
+
+QR codes are automatically generated for each user profile:
+
+1. **Dashboard**: Users can view and download their QR code from the dashboard
+2. **Public Profile**: QR codes are displayed on public profile pages for easy sharing
+3. **Download**: Users can download QR codes as PNG images for printing or digital use
+4. **Usage**: Scan the QR code with any smartphone camera to instantly open the profile
+
+The QR code links directly to the user's public profile URL (`https://yourapp.com/username`).
 
 ## Username Changes
 

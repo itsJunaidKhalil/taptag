@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getProfileById } from "@/lib/getProfile";
 import Navbar from "@/components/Navbar";
+import QRCode from "@/components/QRCode";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -162,44 +163,51 @@ export default function DashboardPage() {
         <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
           <h2 className="text-2xl font-heading font-semibold mb-6 text-gray-900 dark:text-white">Your Public Profile</h2>
           {profile?.username ? (
-            <div className="space-y-4">
-              <p className="text-base text-gray-600 dark:text-gray-400">Share this URL:</p>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <input
-                  type="text"
-                  value={profileUrl}
-                  readOnly
-                  className="flex-1 px-4 py-3 text-base border border-gray-300/50 dark:border-gray-600/50 rounded-2xl bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleCopy}
-                    className="px-6 py-3 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-200 text-base font-semibold shadow-soft hover:shadow-glow whitespace-nowrap"
-                  >
-                    {copied ? "✓ Copied!" : "Copy"}
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="px-6 py-3 bg-gradient-secondary text-white rounded-2xl hover:opacity-90 transition-all duration-200 text-base font-semibold shadow-soft hover:shadow-glow whitespace-nowrap flex items-center gap-2"
-                    title="Share profile"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                    </svg>
-                    Share
-                  </button>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <p className="text-base text-gray-600 dark:text-gray-400">Share this URL:</p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <input
+                    type="text"
+                    value={profileUrl}
+                    readOnly
+                    className="flex-1 px-4 py-3 text-base border border-gray-300/50 dark:border-gray-600/50 rounded-2xl bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCopy}
+                      className="px-6 py-3 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-200 text-base font-semibold shadow-soft hover:shadow-glow whitespace-nowrap"
+                    >
+                      {copied ? "✓ Copied!" : "Copy"}
+                    </button>
+                    <button
+                      onClick={handleShare}
+                      className="px-6 py-3 bg-gradient-secondary text-white rounded-2xl hover:opacity-90 transition-all duration-200 text-base font-semibold shadow-soft hover:shadow-glow whitespace-nowrap flex items-center gap-2"
+                      title="Share profile"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      Share
+                    </button>
+                  </div>
                 </div>
+                <Link
+                  href={`/${profile.username}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-base font-medium transition-colors"
+                >
+                  View your profile
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </Link>
               </div>
-              <Link
-                href={`/${profile.username}`}
-                target="_blank"
-                className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-base font-medium transition-colors"
-              >
-                View your profile
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </Link>
+
+              {/* QR Code Section */}
+              <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+                <QRCode url={profileUrl} size={200} />
+              </div>
             </div>
           ) : (
             <p className="text-base text-gray-600 dark:text-gray-400">

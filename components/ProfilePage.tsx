@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import SocialButton from "./SocialButton";
 import Image from "next/image";
 import ProfileThemeToggle from "./ProfileThemeToggle";
+import QRCode from "./QRCode";
 import { ThemeName } from "@/utils/themes";
 
 // Import PLATFORMS for footer icons
@@ -271,7 +272,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
       <div className="max-w-2xl mx-auto">
         {/* Share Button - Top Right */}
         {profile.username && (
-          <div className="absolute top-4 right-4 z-10">
+          <div className="absolute top-4 right-4 z-10 flex gap-2">
             <button
               onClick={handleShare}
               className="glass p-3 sm:p-4 rounded-2xl shadow-soft-lg hover:shadow-glow transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
@@ -448,19 +449,31 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
             </div>
           )}
 
-          {/* Download VCF */}
+          {/* Download VCF and QR Code */}
           {profile.username && (
-            <div className="text-center mb-8">
-              <a
-                href={`/api/vcf/${profile.username}`}
-                download
-                className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-base sm:text-lg font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-105"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Download Contact Card (VCF)
-              </a>
+            <div className="space-y-8 mb-8">
+              <div className="text-center">
+                <a
+                  href={`/api/vcf/${profile.username}`}
+                  download
+                  className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-base sm:text-lg font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-105"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Contact Card (VCF)
+                </a>
+              </div>
+
+              {/* QR Code Section */}
+              <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
+                <QRCode 
+                  url={`${baseUrl}/${profile.username}`} 
+                  size={180}
+                  showTitle={true}
+                  showDownload={true}
+                />
+              </div>
             </div>
           )}
 
