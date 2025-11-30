@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import SocialButton from "./SocialButton";
 import Image from "next/image";
-import ThemeToggle from "./ThemeToggle";
 import ProfileThemeToggle from "./ProfileThemeToggle";
 import { ThemeName } from "@/utils/themes";
 
@@ -563,14 +562,8 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
         </div>
       </div>
 
-      {/* Theme Toggles - Bottom Right */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-3 items-end">
-        {/* Dark/Light Mode Toggle */}
-        <div className="glass p-2 rounded-2xl shadow-soft-lg" style={{ backgroundColor: 'var(--glass-bg)', borderColor: 'var(--glass-border)' }}>
-          <ThemeToggle />
-        </div>
-        
-        {/* Profile Theme Toggle */}
+      {/* Theme Toggle - Bottom Right */}
+      <div className="fixed bottom-4 right-4 z-50">
         <ProfileThemeToggle 
           currentTheme={theme as ThemeName} 
           onThemeChange={handleThemeChange}
