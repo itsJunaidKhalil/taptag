@@ -3,17 +3,45 @@
 @tailwind utilities;
 
 :root {
-  --background: white;
-  --foreground: black;
-  --bg: white;
-  --text: black;
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  
+  /* Light Theme */
+  --background: #F5F7FA;
+  --foreground: #0A0A0A;
+  --bg: #F5F7FA;
+  --text: #0A0A0A;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(255, 255, 255, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+.dark {
+  /* Dark Theme */
+  --background: #0A0A0A;
+  --foreground: #F5F7FA;
+  --bg: #0A0A0A;
+  --text: #F5F7FA;
+  --card-bg: rgba(15, 15, 15, 0.8);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 15, 15, 0.3);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Profile Theme Overrides */
+[data-theme="default"] {
+  --background: #F5F7FA;
+  --foreground: #0A0A0A;
+  --bg: #F5F7FA;
+  --text: #0A0A0A;
 }
 
 [data-theme="dark"] {
-  --background: #111;
-  --foreground: white;
-  --bg: #111;
-  --text: white;
+  --background: #0A0A0A;
+  --foreground: #F5F7FA;
+  --bg: #0A0A0A;
+  --text: #F5F7FA;
 }
 
 [data-theme="blue"] {
@@ -33,6 +61,66 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(15, 15, 15, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4A3AFF;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3B2ECC;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #4A3AFF 0%, #00C4B4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .gradient-text {
+  background: linear-gradient(135deg, #837FFF 0%, #33CFBF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 

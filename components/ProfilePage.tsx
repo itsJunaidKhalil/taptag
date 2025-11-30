@@ -150,27 +150,27 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   }, [links]);
 
   return (
-    <div data-theme={theme} className="min-h-screen bg-[var(--bg)] text-[var(--text)] relative">
+    <div data-theme={theme} className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/10 text-[var(--text)] relative">
       <div className="max-w-2xl mx-auto">
         {/* Share Button - Top Right */}
         {profile.username && (
           <div className="absolute top-4 right-4 z-10">
             <button
               onClick={handleShare}
-              className="p-2 sm:p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              className="glass p-3 sm:p-4 rounded-2xl shadow-soft-lg hover:shadow-glow transition-all duration-300 flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transform hover:scale-105"
               title="Share profile"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
-              {copied && <span className="text-xs whitespace-nowrap hidden sm:inline">Copied!</span>}
+              {copied && <span className="text-xs whitespace-nowrap hidden sm:inline font-medium">Copied!</span>}
             </button>
           </div>
         )}
 
         {/* Banner */}
         {profile.banner_image_url && (
-          <div className="relative w-full h-40 sm:h-48 md:h-64">
+          <div className="relative w-full h-48 sm:h-56 md:h-72 rounded-b-3xl overflow-hidden shadow-soft-lg">
             <Image
               src={profile.banner_image_url}
               alt="Banner"
@@ -178,15 +178,16 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
               className="object-cover"
               priority
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           </div>
         )}
 
         {/* Profile Content */}
         <div className="px-4 sm:px-6 py-6 sm:py-8">
           {/* Profile Picture */}
-          <div className="flex flex-col items-center mb-6">
+          <div className="flex flex-col items-center mb-8">
             {profile.profile_image_url ? (
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 -mt-12 sm:-mt-16 shadow-lg">
+              <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white dark:border-gray-900 -mt-16 sm:-mt-20 shadow-glow">
                 <Image
                   src={profile.profile_image_url}
                   alt={profile.full_name || "Profile"}
@@ -196,35 +197,36 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 />
               </div>
             ) : (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-300 dark:bg-gray-700 -mt-12 sm:-mt-16 flex items-center justify-center text-3xl sm:text-4xl shadow-lg border-4 border-white dark:border-gray-800">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-primary -mt-16 sm:-mt-20 flex items-center justify-center text-4xl sm:text-5xl font-heading font-bold text-white shadow-glow border-4 border-white dark:border-gray-900">
                 {profile.full_name?.[0]?.toUpperCase() || profile.username?.[0]?.toUpperCase() || "?"}
               </div>
             )}
 
-            <h1 className="text-2xl sm:text-3xl font-bold mt-4 text-center">
+            <h1 className="text-3xl sm:text-4xl font-heading font-bold mt-6 text-center text-gray-900 dark:text-white">
               {profile.full_name || profile.username || "Anonymous"}
             </h1>
             {profile.company && (
-              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mt-1 text-center">
+              <p className="text-lg sm:text-xl text-primary-600 dark:text-primary-400 mt-2 text-center font-medium">
                 {profile.company}
               </p>
             )}
             {profile.about && (
-              <p className="text-center text-sm sm:text-base text-gray-700 dark:text-gray-300 mt-4 max-w-md">
+              <p className="text-center text-base sm:text-lg text-gray-700 dark:text-gray-300 mt-6 max-w-md leading-relaxed">
                 {profile.about}
               </p>
             )}
           </div>
 
           {/* Social Links Section */}
-          <div className="mb-6">
+          <div className="mb-8">
             {loadingLinks ? (
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                Loading links...
+              <div className="glass p-8 rounded-3xl text-center shadow-soft">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+                <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm">Loading links...</p>
               </div>
             ) : links && links.length > 0 ? (
-              <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-center sm:text-left">
+              <div className="space-y-4">
+                <h2 className="text-2xl font-heading font-semibold text-gray-900 dark:text-white mb-6 text-center sm:text-left">
                   Connect with me
                 </h2>
                 {links.map((link) => (
@@ -237,53 +239,59 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                No social links available yet
+              <div className="glass p-8 rounded-3xl text-center shadow-soft">
+                <p className="text-gray-500 dark:text-gray-400">No social links available yet</p>
               </div>
             )}
           </div>
 
           {/* Contact Info Section */}
           {(profile.phone || profile.email || profile.website) && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center sm:text-left">
+            <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg mb-8">
+              <h2 className="text-2xl font-heading font-semibold text-gray-900 dark:text-white mb-6 text-center sm:text-left">
                 Contact Information
               </h2>
-              <div className="space-y-3 text-sm sm:text-base">
+              <div className="space-y-4 text-base sm:text-lg">
                 {profile.phone && (
-                  <div className="flex items-center gap-3 justify-center sm:justify-start">
-                    <span className="text-2xl">📞</span>
-                    <a
-                      href={`tel:${profile.phone}`}
-                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
+                  <a
+                    href={`tel:${profile.phone}`}
+                    className="flex items-center gap-4 justify-center sm:justify-start p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
+                  >
+                    <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform">
+                      <span className="text-2xl">📞</span>
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors font-medium">
                       {profile.phone}
-                    </a>
-                  </div>
+                    </span>
+                  </a>
                 )}
                 {profile.email && (
-                  <div className="flex items-center gap-3 justify-center sm:justify-start">
-                    <span className="text-2xl">✉️</span>
-                    <a
-                      href={`mailto:${profile.email}`}
-                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                    >
+                  <a
+                    href={`mailto:${profile.email}`}
+                    className="flex items-center gap-4 justify-center sm:justify-start p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
+                  >
+                    <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform">
+                      <span className="text-2xl">✉️</span>
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300 group-hover:text-secondary-600 dark:group-hover:text-secondary-400 transition-colors font-medium">
                       {profile.email}
-                    </a>
-                  </div>
+                    </span>
+                  </a>
                 )}
                 {profile.website && (
-                  <div className="flex items-center gap-3 justify-center sm:justify-start">
-                    <span className="text-2xl">🌐</span>
-                    <a
-                      href={profile.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
+                  <a
+                    href={profile.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 justify-center sm:justify-start p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
+                  >
+                    <div className="w-12 h-12 bg-gradient-accent rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform">
+                      <span className="text-2xl">🌐</span>
+                    </div>
+                    <span className="text-primary-600 dark:text-primary-400 group-hover:underline font-medium">
                       {profile.website}
-                    </a>
-                  </div>
+                    </span>
+                  </a>
                 )}
               </div>
             </div>
@@ -291,13 +299,14 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
 
           {/* Download VCF */}
           {profile.username && (
-            <div className="mt-8 text-center">
+            <div className="text-center">
               <a
                 href={`/api/vcf/${profile.username}`}
                 download
-                className="inline-block px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base font-medium shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-base sm:text-lg font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-105"
               >
-                📥 Download Contact Card (VCF)
+                <span className="text-xl">📥</span>
+                Download Contact Card (VCF)
               </a>
             </div>
           )}

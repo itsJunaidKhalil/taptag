@@ -130,15 +130,15 @@ export default function SocialButton({ platform, url, onClick }: SocialButtonPro
   return (
     <button
       onClick={handleClick}
-      className="w-full px-6 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-left flex items-center gap-4 group"
+      className="w-full px-6 py-5 glass border border-gray-200/50 dark:border-gray-700/50 rounded-2xl hover:border-primary-500/50 dark:hover:border-primary-400/50 transition-all duration-300 hover:shadow-glow hover:scale-[1.02] text-left flex items-center gap-4 group"
     >
-      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${color} flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform flex-shrink-0`}>
+      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center text-white shadow-soft group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0`}>
         {icon}
       </div>
-      <span className="font-semibold text-gray-900 dark:text-white text-lg flex-1">
+      <span className="font-heading font-semibold text-gray-900 dark:text-white text-lg flex-1">
         {platform}
       </span>
-      <span className="text-gray-400 group-hover:text-blue-500 transition-colors">→</span>
+      <span className="text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors text-xl">→</span>
     </button>
   );
 }

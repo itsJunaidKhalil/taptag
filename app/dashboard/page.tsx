@@ -67,11 +67,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
         <Navbar />
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
           </div>
         </div>
@@ -85,79 +85,94 @@ export default function DashboardPage() {
     : "Complete your profile to get a public URL";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-4xl sm:text-5xl font-heading font-bold mb-3 gradient-text">
+            Dashboard
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Manage your digital business card
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8 sm:mb-12">
           <Link
             href="/dashboard/profile"
-            className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow hover:shadow-lg transition-all hover:scale-105"
+            className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg hover:shadow-glow transition-all duration-300 transform hover:-translate-y-2 group"
           >
-            <div className="text-3xl mb-2">👤</div>
-            <h2 className="text-lg sm:text-xl font-semibold mb-2">Profile</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 shadow-soft group-hover:scale-110 transition-transform">
+              <span className="text-3xl">👤</span>
+            </div>
+            <h2 className="text-2xl font-heading font-semibold mb-3 text-gray-900 dark:text-white">Profile</h2>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Update your profile information, photos, and contact details
             </p>
           </Link>
 
           <Link
             href="/dashboard/social"
-            className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow hover:shadow-lg transition-all hover:scale-105"
+            className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg hover:shadow-glow transition-all duration-300 transform hover:-translate-y-2 group"
           >
-            <div className="text-3xl mb-2">🔗</div>
-            <h2 className="text-lg sm:text-xl font-semibold mb-2">Social Links</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            <div className="w-16 h-16 bg-gradient-secondary rounded-2xl flex items-center justify-center mb-4 shadow-soft group-hover:scale-110 transition-transform">
+              <span className="text-3xl">🔗</span>
+            </div>
+            <h2 className="text-2xl font-heading font-semibold mb-3 text-gray-900 dark:text-white">Social Links</h2>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Add and manage your social media links
             </p>
           </Link>
 
           <Link
             href="/dashboard/appearance"
-            className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow hover:shadow-lg transition-all hover:scale-105"
+            className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg hover:shadow-glow transition-all duration-300 transform hover:-translate-y-2 group"
           >
-            <div className="text-3xl mb-2">🎨</div>
-            <h2 className="text-lg sm:text-xl font-semibold mb-2">Appearance</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            <div className="w-16 h-16 bg-gradient-accent rounded-2xl flex items-center justify-center mb-4 shadow-soft group-hover:scale-110 transition-transform">
+              <span className="text-3xl">🎨</span>
+            </div>
+            <h2 className="text-2xl font-heading font-semibold mb-3 text-gray-900 dark:text-white">Appearance</h2>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Customize your profile theme and styling
             </p>
           </Link>
 
           <Link
             href="/dashboard/analytics"
-            className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow hover:shadow-lg transition-all hover:scale-105"
+            className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg hover:shadow-glow transition-all duration-300 transform hover:-translate-y-2 group"
           >
-            <div className="text-3xl mb-2">📊</div>
-            <h2 className="text-lg sm:text-xl font-semibold mb-2">Analytics</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 shadow-soft group-hover:scale-110 transition-transform">
+              <span className="text-3xl">📊</span>
+            </div>
+            <h2 className="text-2xl font-heading font-semibold mb-3 text-gray-900 dark:text-white">Analytics</h2>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               View your profile views and link clicks
             </p>
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4">Your Public Profile</h2>
+        <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
+          <h2 className="text-2xl font-heading font-semibold mb-6 text-gray-900 dark:text-white">Your Public Profile</h2>
           {profile?.username ? (
-            <div className="space-y-3">
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Share this URL:</p>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="space-y-4">
+              <p className="text-base text-gray-600 dark:text-gray-400">Share this URL:</p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <input
                   type="text"
                   value={profileUrl}
                   readOnly
-                  className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="flex-1 px-4 py-3 text-base border border-gray-300/50 dark:border-gray-600/50 rounded-2xl bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     onClick={handleCopy}
-                    className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base font-medium whitespace-nowrap"
+                    className="px-6 py-3 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-200 text-base font-semibold shadow-soft hover:shadow-glow whitespace-nowrap"
                   >
                     {copied ? "✓ Copied!" : "Copy"}
                   </button>
                   <button
                     onClick={handleShare}
-                    className="px-4 sm:px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm sm:text-base font-medium whitespace-nowrap flex items-center gap-2"
+                    className="px-6 py-3 bg-gradient-secondary text-white rounded-2xl hover:opacity-90 transition-all duration-200 text-base font-semibold shadow-soft hover:shadow-glow whitespace-nowrap flex items-center gap-2"
                     title="Share profile"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,15 +185,18 @@ export default function DashboardPage() {
               <Link
                 href={`/${profile.username}`}
                 target="_blank"
-                className="inline-block text-blue-600 dark:text-blue-400 hover:underline text-sm sm:text-base"
+                className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-base font-medium transition-colors"
               >
-                View your profile →
+                View your profile
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
               </Link>
             </div>
           ) : (
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            <p className="text-base text-gray-600 dark:text-gray-400">
               Complete your profile to get a public URL.{" "}
-              <Link href="/dashboard/profile" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              <Link href="/dashboard/profile" className="text-primary-600 dark:text-primary-400 hover:underline font-semibold">
                 Get started →
               </Link>
             </p>

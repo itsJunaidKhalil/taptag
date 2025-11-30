@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { getProfileById } from "@/lib/getProfile";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const router = useRouter();
@@ -57,48 +58,48 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="border-b bg-white dark:bg-gray-900 sticky top-0 z-50 shadow-sm">
+    <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-800/50 shadow-soft">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link 
               href={user ? "/dashboard" : "/"} 
-              className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="text-2xl font-heading font-bold gradient-text hover:opacity-80 transition-opacity"
             >
               Digital Card
             </Link>
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
                 <Link
                   href="/dashboard"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive("/dashboard")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
                   }`}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/profile"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive("/dashboard/profile")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
                   }`}
                 >
                   Profile
                 </Link>
                 <Link
                   href="/dashboard/social"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive("/dashboard/social")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
                   }`}
                 >
                   Links
@@ -107,7 +108,7 @@ export default function Navbar() {
                   <Link
                     href={`/${profile.username}`}
                     target="_blank"
-                    className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-1"
+                    className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 text-gray-700 dark:text-gray-300 hover:bg-secondary-50 dark:hover:bg-secondary-900/20 hover:text-secondary-600 dark:hover:text-secondary-400 flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -115,24 +116,26 @@ export default function Navbar() {
                     View Profile
                   </Link>
                 )}
+                <ThemeToggle />
                 <button
                   onClick={handleSignOut}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 text-sm font-medium shadow-soft hover:shadow-soft-lg"
                 >
                   Sign Out
                 </button>
               </>
             ) : (
               <>
+                <ThemeToggle />
                 <Link
                   href="/auth/login"
-                  className="px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm font-medium"
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-sm font-medium rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                  className="px-6 py-2 bg-gradient-primary text-white rounded-xl hover:opacity-90 transition-all duration-200 text-sm font-medium shadow-soft hover:shadow-glow"
                 >
                   Sign Up
                 </Link>
@@ -163,17 +166,17 @@ export default function Navbar() {
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-white dark:bg-gray-900">
+        <div className="md:hidden border-t border-gray-200/50 dark:border-gray-800/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {user ? (
               <>
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
                     isActive("/dashboard")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
                 >
                   Dashboard
@@ -181,10 +184,10 @@ export default function Navbar() {
                 <Link
                   href="/dashboard/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
                     isActive("/dashboard/profile")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
                 >
                   Profile
@@ -192,10 +195,10 @@ export default function Navbar() {
                 <Link
                   href="/dashboard/social"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
                     isActive("/dashboard/social")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
                 >
                   Links
@@ -216,10 +219,10 @@ export default function Navbar() {
                 <Link
                   href="/dashboard/appearance"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
                     isActive("/dashboard/appearance")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
                 >
                   Appearance
@@ -227,34 +230,42 @@ export default function Navbar() {
                 <Link
                   href="/dashboard/analytics"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
                     isActive("/dashboard/analytics")
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
                 >
                   Analytics
                 </Link>
+                <div className="px-4 py-2 flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Theme</span>
+                  <ThemeToggle />
+                </div>
                 <button
                   onClick={handleSignOut}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="block w-full text-left px-4 py-2 rounded-xl text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                 >
                   Sign Out
                 </button>
               </>
             ) : (
               <>
+                <div className="px-4 py-2 flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Theme</span>
+                  <ThemeToggle />
+                </div>
                 <Link
                   href="/auth/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="block px-4 py-2 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md text-base font-medium bg-blue-600 text-white hover:bg-blue-700"
+                  className="block px-4 py-2 rounded-xl text-base font-medium bg-gradient-primary text-white hover:opacity-90 shadow-soft"
                 >
                   Sign Up
                 </Link>

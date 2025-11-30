@@ -147,7 +147,8 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4">Profile Information</h2>
+        <h2 className="text-3xl font-heading font-bold mb-2 gradient-text">Profile Information</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">Update your profile details</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -169,7 +170,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Username *
         </label>
         <input
@@ -178,15 +179,15 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           value={formData.username}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           Your profile will be available at: /{formData.username || "username"}
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Full Name
         </label>
         <input
@@ -194,12 +195,12 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           name="full_name"
           value={formData.full_name}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Company
         </label>
         <input
@@ -207,12 +208,12 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           name="company"
           value={formData.company}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           About
         </label>
         <textarea
@@ -220,12 +221,12 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           value={formData.about}
           onChange={handleChange}
           rows={4}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft resize-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Phone
         </label>
         <input
@@ -233,12 +234,12 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Email
         </label>
         <input
@@ -246,12 +247,12 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Website
         </label>
         <input
@@ -260,18 +261,18 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           value={formData.website}
           onChange={handleChange}
           placeholder="https://example.com"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-2xl shadow-soft">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
       {success && (
-        <div className="p-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-lg">
+        <div className="p-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-2xl shadow-soft-lg">
           <div className="flex items-start gap-3 mb-4">
             <div className="flex-shrink-0">
               <svg
@@ -308,17 +309,17 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
                     <button
                       type="button"
                       onClick={handleCopyLink}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium whitespace-nowrap"
+                      className="px-6 py-3 bg-gradient-secondary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-sm font-semibold whitespace-nowrap shadow-soft hover:shadow-glow-secondary"
                     >
                       {copied ? "✓ Copied!" : "Copy Link"}
                     </button>
                   </div>
                   
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/${formData.username}`}
                       target="_blank"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-sm font-semibold shadow-soft hover:shadow-glow"
                     >
                       <svg
                         className="w-4 h-4"
@@ -345,7 +346,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
                     <button
                       type="button"
                       onClick={handleShare}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-accent text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-sm font-semibold shadow-soft hover:shadow-soft-lg"
                     >
                       <svg
                         className="w-4 h-4"
@@ -377,7 +378,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
       <button
         type="submit"
         disabled={saving}
-        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+        className="px-8 py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-[1.02] disabled:transform-none"
       >
         {saving ? "Saving..." : "Save Profile"}
       </button>

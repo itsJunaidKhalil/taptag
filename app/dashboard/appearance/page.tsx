@@ -80,11 +80,11 @@ export default function AppearancePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
         <Navbar />
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
           </div>
         </div>
@@ -95,31 +95,33 @@ export default function AppearancePage() {
   const currentTheme = (profile?.theme as ThemeName) || "default";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-2">Appearance</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          Choose a theme for your public profile
-        </p>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-heading font-bold mb-3 gradient-text">Appearance</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Choose a theme for your public profile
+          </p>
+        </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-2xl shadow-soft">
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-2xl shadow-soft">
             <p className="text-sm text-green-600 dark:text-green-400">
               Theme updated successfully!
             </p>
           </div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-6">Choose Theme</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
+          <h2 className="text-2xl font-heading font-semibold mb-6 text-gray-900 dark:text-white">Choose Theme</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {(Object.keys(themes) as ThemeName[]).map((themeName) => {
               const theme = themes[themeName];
               const isSelected = currentTheme === themeName;
@@ -129,22 +131,24 @@ export default function AppearancePage() {
                   key={themeName}
                   onClick={() => handleThemeChange(themeName)}
                   disabled={saving}
-                  className={`p-6 border-2 rounded-xl text-left transition-all hover:shadow-lg ${
+                  className={`p-6 border-2 rounded-2xl text-left transition-all duration-300 hover:shadow-soft-lg transform hover:-translate-y-1 ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-md"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30 shadow-glow"
+                      : "border-gray-200/50 dark:border-gray-700/50 hover:border-primary-300 dark:hover:border-primary-700"
                   } ${saving ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-semibold text-lg capitalize text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-heading font-semibold text-lg capitalize text-gray-900 dark:text-white">
                       {themeName}
                     </span>
                     {isSelected && (
-                      <span className="text-blue-600 dark:text-blue-400 text-xl">✓</span>
+                      <div className="w-6 h-6 bg-gradient-primary rounded-full flex items-center justify-center text-white text-sm font-bold shadow-soft">
+                        ✓
+                      </div>
                     )}
                   </div>
                   <div
-                    className="h-24 rounded-lg flex items-center justify-center shadow-inner"
+                    className="h-28 rounded-xl flex items-center justify-center shadow-soft"
                     style={{
                       backgroundColor: theme.bg,
                       color: theme.text,
@@ -162,14 +166,14 @@ export default function AppearancePage() {
         </div>
 
         {profile?.username && (
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-sm text-blue-600 dark:text-blue-400">
+          <div className="mt-6 glass p-6 rounded-2xl shadow-soft-lg border border-primary-200/50 dark:border-primary-800/50">
+            <p className="text-sm text-primary-700 dark:text-primary-300">
               💡 Preview your theme by visiting{" "}
               <a
                 href={`/${profile.username}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold underline hover:text-blue-700 dark:hover:text-blue-300"
+                className="font-semibold underline hover:text-primary-800 dark:hover:text-primary-200 transition-colors"
               >
                 your public profile
               </a>
