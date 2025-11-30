@@ -96,9 +96,9 @@ export default function RegisterPage() {
           <div className="w-full max-w-md">
             <div className="glass rounded-3xl shadow-soft-lg p-6 sm:p-8 text-center border border-gray-200/50 dark:border-gray-700/50">
               <div className="mb-6">
-                <div className="w-20 h-20 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto shadow-glow-secondary">
+                <div className="w-20 h-20 glass rounded-full flex items-center justify-center mx-auto shadow-soft-lg border border-white/20">
                   <svg
-                    className="h-10 w-10 text-white"
+                    className="h-10 w-10 text-secondary-600 dark:text-secondary-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
