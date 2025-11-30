@@ -104,6 +104,18 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleWebsiteBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    let value = e.target.value.trim();
+    if (value && !value.match(/^https?:\/\//i)) {
+      // Add https:// if URL doesn't start with http:// or https://
+      value = `https://${value}`;
+      setFormData({
+        ...formData,
+        website: value,
+      });
+    }
+  };
+
   const getProfileUrl = () => {
     if (!formData.username) return null;
     const baseUrl = typeof window !== "undefined" 
@@ -260,9 +272,13 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           name="website"
           value={formData.website}
           onChange={handleChange}
-          placeholder="https://example.com"
+          onBlur={handleWebsiteBlur}
+          placeholder="example.com or https://example.com"
           className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white transition-all shadow-soft"
         />
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          We'll automatically add https:// if you don't include it
+        </p>
       </div>
 
       {error && (

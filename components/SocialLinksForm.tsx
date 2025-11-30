@@ -155,11 +155,17 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
       return;
     }
 
+    // Auto-add https:// if URL doesn't have a protocol
+    let processedUrl = newUrl.trim();
+    if (processedUrl && !processedUrl.match(/^https?:\/\//i)) {
+      processedUrl = `https://${processedUrl}`;
+    }
+
     // Validate URL
     try {
-      new URL(newUrl);
+      new URL(processedUrl);
     } catch {
-      setError("Please enter a valid URL (e.g., https://example.com)");
+      setError("Please enter a valid URL (e.g., example.com or https://example.com)");
       return;
     }
 
@@ -176,6 +182,12 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
         return;
       }
 
+      // Auto-add https:// if URL doesn't have a protocol
+      let processedUrl = newUrl.trim();
+      if (processedUrl && !processedUrl.match(/^https?:\/\//i)) {
+        processedUrl = `https://${processedUrl}`;
+      }
+
       const response = await fetch("/api/social/create", {
         method: "POST",
         headers: { 
@@ -185,7 +197,7 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
         body: JSON.stringify({
           user_id: userId,
           platform: newPlatform,
-          url: newUrl,
+          url: processedUrl,
           order_index: links.length,
         }),
       });
@@ -359,9 +371,12 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
                 type="url"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="https://..."
+                placeholder="example.com or https://example.com"
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                We'll automatically add https:// if you don't include it
+              </p>
             </div>
             <div className="flex gap-2">
               <button
