@@ -110,15 +110,10 @@ export default function SocialButton({ platform, url, onClick, onShare }: Social
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    // Don't open link if clicking on menu
-    if ((e.target as HTMLElement).closest('.menu-button')) {
-      return;
-    }
+  const handleLinkClick = () => {
     if (onClick) {
       onClick();
     }
-    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleShare = async (e: React.MouseEvent) => {
@@ -174,10 +169,13 @@ export default function SocialButton({ platform, url, onClick, onShare }: Social
   const { icon, color } = getPlatformData(platform);
 
   return (
-    <div className="relative">
-      <button
-        onClick={handleClick}
-        className="w-full px-4 py-3 glass border border-gray-200/50 dark:border-gray-700/50 rounded-2xl hover:border-primary-500/50 dark:hover:border-primary-400/50 transition-all duration-300 hover:shadow-glow hover:scale-[1.02] text-left flex items-center gap-3 group"
+    <div className="relative flex items-center gap-2">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleLinkClick}
+        className="flex-1 px-4 py-3 glass border border-gray-200/50 dark:border-gray-700/50 rounded-2xl hover:border-primary-500/50 dark:hover:border-primary-400/50 transition-all duration-300 hover:shadow-glow hover:scale-[1.02] flex items-center gap-3 group"
       >
         <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${color} flex items-center justify-center text-white shadow-soft group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0`}>
           <div className="flex items-center justify-center [&>svg]:w-5 [&>svg]:h-5 [&>svg]:flex-shrink-0">
@@ -187,12 +185,13 @@ export default function SocialButton({ platform, url, onClick, onShare }: Social
         <span className="font-heading font-semibold text-base flex-1" style={{ color: 'var(--text)' }}>
           {platform}
         </span>
+      </a>
       <button
         onClick={(e) => {
           e.stopPropagation();
           setShowMenu(!showMenu);
         }}
-        className="menu-button p-2 rounded-lg transition-colors"
+        className="menu-button flex-shrink-0 p-2 rounded-lg transition-colors"
         style={{ 
           color: 'var(--text)',
           opacity: 0.6
@@ -204,7 +203,6 @@ export default function SocialButton({ platform, url, onClick, onShare }: Social
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
         </svg>
-      </button>
       </button>
 
       {/* Dropdown Menu */}

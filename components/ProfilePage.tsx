@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import SocialButton from "./SocialButton";
 import Image from "next/image";
 import ProfileThemeToggle from "./ProfileThemeToggle";
 import QRCode from "./QRCode";
 import { ThemeName } from "@/utils/themes";
+import { supabase } from "@/lib/supabase";
 
 // Import PLATFORMS for footer icons
 const PLATFORMS = [
@@ -133,6 +135,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   const [loadingLinks, setLoadingLinks] = useState(false);
   const linksFetchedRef = useRef(false);
   const [localTheme, setLocalTheme] = useState<ThemeName>((profile.theme as ThemeName) || "default");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Fetch links dynamically to get latest updates
   useEffect(() => {
@@ -262,6 +265,13 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.id]);
 
+  // Check if viewer is logged in
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
+  }, []);
+
   // Debug: Log links to console
   useEffect(() => {
     console.log("Social links received:", links);
@@ -269,28 +279,85 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
 
   return (
     <div data-theme={theme} className="min-h-screen relative" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
-      <div className="max-w-2xl mx-auto">
-        {/* Share Button - Top Right */}
-        {profile.username && (
-          <div className="absolute top-4 right-4 z-10 flex gap-2">
-            <button
-              onClick={handleShare}
-              className="glass p-3 sm:p-4 rounded-2xl shadow-soft-lg hover:shadow-glow transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
-              style={{ 
-                backgroundColor: 'var(--glass-bg)', 
-                borderColor: 'var(--glass-border)',
-                color: 'var(--text)'
-              }}
-              title="Share profile"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              {copied && <span className="text-xs whitespace-nowrap hidden sm:inline font-medium">Copied!</span>}
-            </button>
-          </div>
-        )}
 
+      {/* Fixed Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-3 py-2.5">
+        <div className="max-w-2xl mx-auto">
+          <div
+            className="rounded-2xl shadow-soft-lg px-4 py-2.5 flex items-center justify-between border"
+            style={{
+              backgroundColor: 'var(--glass-bg, rgba(255,255,255,0.85))',
+              borderColor: 'var(--glass-border, rgba(255,255,255,0.3))',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+          >
+            {/* Left: Back to dashboard or brand */}
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 text-sm font-semibold transition-all duration-200 group"
+                style={{ color: 'var(--text)' }}
+              >
+                <div
+                  className="flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 group-hover:-translate-x-0.5"
+                  style={{ backgroundColor: 'var(--glass-bg, rgba(0,0,0,0.06))' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </div>
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+            ) : (
+              <Link href="/" className="flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+                  style={{ background: 'linear-gradient(135deg, var(--primary, #6366f1), var(--secondary, #8b5cf6))' }}
+                >
+                  T
+                </div>
+                <span className="font-heading font-bold text-sm hidden sm:inline">TapTag</span>
+              </Link>
+            )}
+
+            {/* Center: username pill */}
+            {profile.username && (
+              <span
+                className="text-xs font-medium px-3 py-1 rounded-full"
+                style={{
+                  backgroundColor: 'var(--glass-bg, rgba(0,0,0,0.06))',
+                  color: 'var(--text)',
+                  opacity: 0.8,
+                }}
+              >
+                @{profile.username}
+              </span>
+            )}
+
+            {/* Right: Share button */}
+            {profile.username && (
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, var(--primary, #6366f1), var(--secondary, #8b5cf6))',
+                  color: '#fff',
+                  boxShadow: '0 2px 8px rgba(99,102,241,0.35)',
+                }}
+                title="Share profile"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                <span>{copied ? "Copied!" : "Share"}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-2xl mx-auto pt-16">
         {/* Banner */}
         {profile.banner_image_url && (
           <div className="relative w-full h-48 sm:h-56 md:h-72 rounded-b-3xl overflow-hidden shadow-soft-lg">
@@ -310,7 +377,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
           {/* Profile Picture */}
           <div className="flex flex-col items-center mb-8">
             {profile.profile_image_url ? (
-              <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white dark:border-gray-900 -mt-16 sm:-mt-20 shadow-glow">
+              <div className={`relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white dark:border-gray-900 shadow-glow ${profile.banner_image_url ? '-mt-16 sm:-mt-20' : 'mt-4'}`}>
                 <Image
                   src={profile.profile_image_url}
                   alt={profile.full_name || "Profile"}
@@ -320,7 +387,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 />
               </div>
             ) : (
-              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-primary -mt-16 sm:-mt-20 flex items-center justify-center text-4xl sm:text-5xl font-heading font-bold text-white shadow-glow border-4 border-white dark:border-gray-900">
+              <div className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-primary flex items-center justify-center text-4xl sm:text-5xl font-heading font-bold text-white shadow-glow border-4 border-white dark:border-gray-900 ${profile.banner_image_url ? '-mt-16 sm:-mt-20' : 'mt-4'}`}>
                 {profile.full_name?.[0]?.toUpperCase() || profile.username?.[0]?.toUpperCase() || "?"}
               </div>
             )}
