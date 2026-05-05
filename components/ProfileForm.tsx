@@ -168,7 +168,9 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           userId={userId}
           bucket="profile-images"
           currentUrl={formData.profile_image_url}
-          onUploadComplete={(url) => setFormData({ ...formData, profile_image_url: url })}
+          onUploadComplete={(url) =>
+            setFormData((prev) => ({ ...prev, profile_image_url: url }))
+          }
           label="Profile Picture"
         />
 
@@ -176,7 +178,9 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
           userId={userId}
           bucket="banners"
           currentUrl={formData.banner_image_url}
-          onUploadComplete={(url) => setFormData({ ...formData, banner_image_url: url })}
+          onUploadComplete={(url) =>
+            setFormData((prev) => ({ ...prev, banner_image_url: url }))
+          }
           label="Banner Image"
         />
       </div>
@@ -288,8 +292,8 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
       )}
 
       {success && (
-        <div className="p-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-2xl shadow-soft-lg">
-          <div className="flex items-start gap-3 mb-4">
+        <div className="p-4 sm:p-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-2xl shadow-soft-lg">
+          <div className="flex items-start gap-3 mb-3 sm:mb-4">
             <div className="flex-shrink-0">
               <svg
                 className="w-6 h-6 text-green-600 dark:text-green-400"
@@ -305,37 +309,37 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
                 />
               </svg>
             </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-1">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg font-semibold text-green-800 dark:text-green-300 mb-1">
                 Profile Updated Successfully! 🎉
               </h3>
-              <p className="text-sm text-green-700 dark:text-green-400 mb-4">
+              <p className="text-sm text-green-700 dark:text-green-400 mb-3 sm:mb-4">
                 Your profile has been saved. Here's your public profile link:
               </p>
               
               {profileUrl ? (
                 <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <input
                       type="text"
                       value={profileUrl}
                       readOnly
-                      className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-green-300 dark:border-green-700 rounded-md text-sm text-gray-900 dark:text-white"
+                      className="w-full sm:flex-1 px-3 sm:px-4 py-2.5 bg-white dark:bg-gray-800 border border-green-300 dark:border-green-700 rounded-xl text-sm text-gray-900 dark:text-white"
                     />
                     <button
                       type="button"
                       onClick={handleCopyLink}
-                      className="px-6 py-3 bg-gradient-secondary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-sm font-semibold whitespace-nowrap shadow-soft hover:shadow-glow-secondary"
+                      className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-semibold whitespace-nowrap shadow-soft hover:shadow-glow-secondary"
                     >
                       {copied ? "✓ Copied!" : "Copy Link"}
                     </button>
                   </div>
                   
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
                     <Link
                       href={`/${formData.username}`}
                       target="_blank"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-sm font-semibold shadow-soft hover:shadow-glow"
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-semibold shadow-soft hover:shadow-glow"
                     >
                       <svg
                         className="w-4 h-4"
@@ -362,7 +366,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
                     <button
                       type="button"
                       onClick={handleShare}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-accent text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-sm font-semibold shadow-soft hover:shadow-soft-lg"
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:opacity-90 transition-all duration-300 text-sm font-semibold shadow-soft hover:shadow-soft-lg"
                     >
                       <svg
                         className="w-4 h-4"
@@ -394,7 +398,7 @@ export default function ProfileForm({ profile, userId }: ProfileFormProps) {
       <button
         type="submit"
         disabled={saving}
-        className="px-8 py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-[1.02] disabled:transform-none"
+        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-[1.02] disabled:transform-none"
       >
         {saving ? "Saving..." : "Save Profile"}
       </button>

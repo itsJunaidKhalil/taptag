@@ -196,6 +196,63 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## OAuth Setup (GitHub + LinkedIn)
+
+You already configured Google. To add GitHub and LinkedIn with Supabase + Vercel:
+
+### 1) Configure redirect URLs in Supabase
+
+In **Supabase Dashboard → Authentication → URL Configuration**:
+
+- **Site URL**
+  - Local: `http://localhost:3000`
+  - Production: your Vercel URL (for example `https://your-app.vercel.app`)
+- **Redirect URLs** (add all environments you use):
+  - `http://localhost:3000/auth/callback`
+  - `https://your-app.vercel.app/auth/callback`
+
+### 2) GitHub OAuth App
+
+1. Go to GitHub **Settings → Developer settings → OAuth Apps**.
+2. Create a new OAuth app:
+   - **Homepage URL**: your app URL (`http://localhost:3000` for local testing, Vercel URL for prod)
+   - **Authorization callback URL**: your Supabase callback URL:
+     - `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback`
+3. Copy **Client ID** and **Client Secret**.
+4. In Supabase **Authentication → Providers → GitHub**, enable GitHub and paste credentials.
+5. Save and test login.
+
+### 3) LinkedIn OAuth App
+
+1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/).
+2. Create an app and add products required for Sign In (typically **Sign In with LinkedIn using OpenID Connect**).
+3. In app auth settings, add redirect URL:
+   - `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback`
+4. Copy **Client ID** and **Client Secret**.
+5. In Supabase **Authentication → Providers → LinkedIn**, enable LinkedIn and paste credentials.
+6. Save and test login.
+
+### 4) Vercel environment variables
+
+Ensure these exist in Vercel for the correct environments:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_KEY=... # use your anon/publishable key
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+After updating env vars, redeploy.
+
+### 5) Common issues checklist
+
+- Provider is enabled in Supabase but callback URL in GitHub/LinkedIn is wrong.
+- Callback points to your app instead of Supabase (`/auth/v1/callback` must be on Supabase domain).
+- Local and production URLs are mixed.
+- You changed env vars in Vercel but did not redeploy.
+- Browser has stale session; sign out and try again.
+
 ## Project Structure
 
 ```

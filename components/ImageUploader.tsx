@@ -22,6 +22,11 @@ export default function ImageUploader({
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const [error, setError] = useState<string | null>(null);
 
+  const withCacheBust = (url: string) => {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}t=${Date.now()}`;
+  };
+
   // Update preview when currentUrl changes
   useEffect(() => {
     setPreview(currentUrl || null);
@@ -76,8 +81,9 @@ export default function ImageUploader({
           throw new Error(result.error || "Failed to upload image");
         }
 
-        setPreview(result.url);
-        onUploadComplete(result.url);
+        const freshUrl = withCacheBust(result.url);
+        setPreview(freshUrl);
+        onUploadComplete(freshUrl);
         e.target.value = "";
         return;
       } catch (apiError: any) {
@@ -111,8 +117,9 @@ export default function ImageUploader({
           data: { publicUrl },
         } = supabase.storage.from(bucket).getPublicUrl(filePath);
 
-        setPreview(publicUrl);
-        onUploadComplete(publicUrl);
+        const freshUrl = withCacheBust(publicUrl);
+        setPreview(freshUrl);
+        onUploadComplete(freshUrl);
         e.target.value = "";
       }
     } catch (error: any) {
