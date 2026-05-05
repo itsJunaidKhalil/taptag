@@ -21,6 +21,7 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const [error, setError] = useState<string | null>(null);
+  const inputId = `${bucket}-${userId}-upload`;
 
   const withCacheBust = (url: string) => {
     const separator = url.includes("?") ? "&" : "?";
@@ -152,12 +153,23 @@ export default function ImageUploader({
         )}
         <div className="flex-1 w-full">
           <input
+            id={inputId}
             type="file"
             accept="image/*"
             onChange={handleUpload}
             disabled={uploading}
-            className="block text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-200"
+            className="hidden"
           />
+          <label
+            htmlFor={inputId}
+            className={`inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              uploading
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400"
+                : "bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer dark:bg-blue-900 dark:text-blue-200"
+            }`}
+          >
+            {uploading ? "Uploading..." : `Choose ${label}`}
+          </label>
           {uploading && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Uploading...</p>}
           {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
         </div>
