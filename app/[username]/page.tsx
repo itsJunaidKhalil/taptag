@@ -1,10 +1,63 @@
 import { notFound, redirect, permanentRedirect } from "next/navigation";
+import type { Metadata } from "next";
 import { getProfile } from "@/lib/getProfile";
 import ProfilePageContent from "@/components/ProfilePage";
 
 // Disable caching for this page to ensure fresh data
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
+
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://taptag.biz";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { username: string };
+}): Promise<Metadata> {
+  let profile: any = null;
+  try {
+    profile = await getProfile(params.username);
+  } catch {
+    return {
+      title: "Profile not found",
+      robots: { index: false, follow: false },
+    };
+  }
+  if (!profile) {
+    return {
+      title: "Profile not found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const displayName = profile.full_name || profile.username || params.username;
+  const title = `${displayName}${profile.company ? ` — ${profile.company}` : ""}`;
+  const description =
+    profile.about ||
+    `${displayName}'s digital business card on TapTag. Connect, save contact, follow socials.`;
+  const url = `${SITE_URL}/${profile.username}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      url,
+      siteName: "TapTag",
+      images: [`/${profile.username}/opengraph-image`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`/${profile.username}/twitter-image`],
+    },
+    robots: { index: true, follow: true },
+  };
+}
 
 export default async function ProfilePage({
   params,
