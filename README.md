@@ -4,21 +4,31 @@ A full-stack platform where users can create customizable profiles, share social
 
 ## Features
 
-- ✅ User authentication (Sign up / Login)
-- ✅ Customizable profile with images
-- ✅ Social media links management
+- ✅ Authentication: email + Google / GitHub / LinkedIn OAuth
+- ✅ Unified editor at `/dashboard/edit` with **live phone-frame preview**
+- ✅ 4-step **onboarding wizard** (username check, photo, starter links, confetti)
+- ✅ Customizable profile with images and themes
+- ✅ Drag-and-drop social link reordering (`@dnd-kit`)
+- ✅ **25+ platforms** out of the box (categorized picker with search)
 - ✅ Dynamic public profile URLs: `/username`
+- ✅ Per-profile **SEO metadata** + dynamic Open Graph image (1200×630)
+- ✅ Per-profile favicon (uses profile photo)
+- ✅ Dynamic `sitemap.xml` and `robots.txt`
 - ✅ VCF (contact card) download
 - ✅ QR Code generation and download
-- ✅ Analytics tracking (profile views, link clicks)
-- ✅ Theme customization
+- ✅ Analytics tracking (gated on cookie consent)
 - ✅ NFC keychain integration support
 - ✅ Forgot password / password reset flow
-- ✅ Username change redirects (old links automatically redirect to new username)
+- ✅ Username change redirects (old links keep working forever)
+- ✅ GDPR-friendly cookie consent modal
+- ✅ Report modal for moderation
+- ✅ Toast notifications (`sonner`) — no more browser `alert()`s
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
+- **State**: Zustand (editor draft + dirty state)
+- **UI primitives**: Radix UI Dialog, sonner (toasts), @dnd-kit (drag/drop)
 - **Backend**: Supabase (Auth, PostgreSQL, Storage)
 - **Hosting**: Vercel (Frontend), Supabase (Backend)
 
@@ -57,12 +67,30 @@ npm install
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (optional, for better performance)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reorder
 ```
 
 5. **Set up the database**
 
-   Run these SQL commands in your Supabase SQL Editor:
+   **For an existing project**, run the Tier 1 migration:
+
+   ```bash
+   # In Supabase SQL editor, paste the contents of:
+   supabase/migrations/20260510_tier1_overhaul.sql
+   ```
+
+   This is fully additive (uses `if not exists` everywhere) — safe to run on
+   production with zero downtime. It adds:
+
+   - `profiles.onboarding_completed_at` (controls the wizard)
+   - `social_links.block_type`, `title`, `subtitle`, `thumbnail_url`,
+     `is_featured`, `is_visible` (Tier 2 ready)
+   - `reports` table (powers the Report modal on public profiles)
+   - `reorder_social_links()` Postgres function (atomic drag-and-drop)
+   - Indexes on `social_links(user_id, order_index)` and
+     `profiles(lower(username))`
+
+   **For a fresh setup**, run the base schema below first, then the migration:
 
 ```sql
 -- Create profiles table
@@ -257,16 +285,46 @@ After updating env vars, redeploy.
 
 ```
 /app
-  /auth          # Login and registration pages
-      forgot-password/page.tsx
-      update-password/page.tsx
-  /dashboard     # User dashboard pages
-  /api           # API routes
-  /[username]    # Public profile pages
-/components      # React components
-/lib             # Utility functions
-/utils           # Helper functions
-/styles          # Global styles
+  /[username]                       # Public profile route + dynamic OG/Twitter/icon images
+  /auth                             # Login, register, forgot-password, update-password, OAuth callback
+  /dashboard
+    /edit                           # Unified editor (Profile/Links/Appearance) with live preview
+    /analytics                      # View counts, link clicks
+    /(profile|social|appearance)    # Permanent redirects -> /dashboard/edit?tab=...
+  /api
+    /analytics                      # Event ingestion
+    /profile/update                 # Profile + onboarding update
+    /profile/[username]/links       # Public link list
+    /social/(create|update|delete|list|reorder)
+    /username/check                 # Live availability for onboarding
+    /reports                        # Report submission
+    /upload                         # Image upload
+    /vcf/[username]                 # Downloadable contact card
+  /sitemap.ts                       # Dynamic sitemap
+  /robots.ts                        # robots.txt
+  /privacy                          # Privacy policy
+  /layout.tsx                       # Root layout w/ Toaster + metadata
+  /page.tsx                         # Landing page
+
+/components
+  /editor                           # Editor shell, tabs, preview drawer, save status
+  /onboarding                       # 4-step wizard
+  /profile                          # ProfileCard (presentational) + PhoneFrame
+  /ui                               # Modal, ConfirmDialog, Toaster, CookieConsentModal, ReportModal
+  PlatformIcon.tsx, PlatformPicker.tsx, ImageUploader.tsx,
+  Navbar.tsx, ProfilePage.tsx, ProfileForm.tsx, QRCode.tsx, SocialButton.tsx,
+  SocialLinksForm.tsx, ProfileThemeToggle.tsx, ThemeToggle.tsx, TapTagLogo.tsx
+
+/lib
+  platforms.ts                      # 25 platforms registry (single source of truth)
+  consent.ts                        # Cookie consent helpers
+  store/editorStore.ts              # Zustand editor state
+  supabase.ts, supabase-server.ts   # Supabase clients
+  getProfile.ts, getSocialLinks.ts  # Server-side fetchers
+
+/supabase/migrations                # SQL migration scripts
+/utils                              # themes.ts, vcf.ts
+/styles                             # globals.css (Tailwind + CSS vars)
 ```
 
 ## Deployment
