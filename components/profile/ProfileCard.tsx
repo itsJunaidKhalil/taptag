@@ -23,6 +23,7 @@ export interface ProfileCardLink {
   id: string;
   platform: string;
   url: string;
+  order_index?: number;
   title?: string | null;
 }
 

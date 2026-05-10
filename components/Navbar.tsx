@@ -58,6 +58,14 @@ export default function Navbar() {
     return pathname === path;
   };
 
+  const isEditActive = (tab: string) => {
+    if (!pathname?.startsWith("/dashboard/edit")) return false;
+    const currentTab = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("tab") || "profile"
+      : "profile";
+    return currentTab === tab;
+  };
+
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-800/50 shadow-soft">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,24 +92,24 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/dashboard/profile"
+                  href="/dashboard/edit?tab=profile"
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive("/dashboard/profile")
+                    isEditActive("profile")
                       ? "bg-gradient-primary text-white shadow-glow"
                       : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
                   }`}
                 >
-                  Profile
+                  Edit
                 </Link>
                 <Link
-                  href="/dashboard/social"
+                  href="/dashboard/analytics"
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive("/dashboard/social")
+                    isActive("/dashboard/analytics")
                       ? "bg-gradient-primary text-white shadow-glow"
                       : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
                   }`}
                 >
-                  Links
+                  Analytics
                 </Link>
                 {profile?.username && (
                   <Link
@@ -181,21 +189,21 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/dashboard/profile"
+                  href="/dashboard/edit?tab=profile"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
-                    isActive("/dashboard/profile")
+                    isEditActive("profile")
                       ? "bg-gradient-primary text-white shadow-glow"
                       : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
                 >
-                  Profile
+                  Edit profile
                 </Link>
                 <Link
-                  href="/dashboard/social"
+                  href="/dashboard/edit?tab=links"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
-                    isActive("/dashboard/social")
+                    isEditActive("links")
                       ? "bg-gradient-primary text-white shadow-glow"
                       : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
@@ -216,10 +224,10 @@ export default function Navbar() {
                   </Link>
                 )}
                 <Link
-                  href="/dashboard/appearance"
+                  href="/dashboard/edit?tab=appearance"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
-                    isActive("/dashboard/appearance")
+                    isEditActive("appearance")
                       ? "bg-gradient-primary text-white shadow-glow"
                       : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   }`}
