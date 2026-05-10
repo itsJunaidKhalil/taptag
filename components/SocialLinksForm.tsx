@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  WHATSAPP_DIAL_COUNTRIES,
+  isoToFlagEmoji,
+  buildWhatsAppUrlFromDialAndNational,
+  guessDefaultCountryIso,
+  getDialCountryByIso,
+} from "@/lib/whatsappDial";
 
 interface SocialLink {
   id: string;
@@ -112,10 +119,16 @@ const PLATFORMS = [
   },
 ];
 
+function isWhatsAppPlatform(platform: string) {
+  return platform.toLowerCase() === "whatsapp";
+}
+
 export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded }: SocialLinksFormProps) {
   const [links, setLinks] = useState<SocialLink[]>(initialLinks);
   const [newPlatform, setNewPlatform] = useState("");
   const [newUrl, setNewUrl] = useState("");
+  const [whatsappCountryIso, setWhatsappCountryIso] = useState(guessDefaultCountryIso);
+  const [whatsappNational, setWhatsappNational] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -140,23 +153,41 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
   };
 
   const handleAddLink = async () => {
-    if (!newPlatform || !newUrl) {
-      setError("Please fill in both platform and URL");
+    const whatsappFilled = isWhatsAppPlatform(newPlatform) && whatsappNational.trim();
+    const urlFilled = !isWhatsAppPlatform(newPlatform) && newUrl.trim();
+    if (!newPlatform || (!whatsappFilled && !urlFilled)) {
+      setError(
+        isWhatsAppPlatform(newPlatform)
+          ? "Please select your country and enter your WhatsApp number"
+          : "Please fill in both platform and URL"
+      );
       return;
     }
 
-    // Auto-add https:// if URL doesn't have a protocol
-    let processedUrl = newUrl.trim();
-    if (processedUrl && !processedUrl.match(/^https?:\/\//i)) {
-      processedUrl = `https://${processedUrl}`;
-    }
-
-    // Validate URL
-    try {
-      new URL(processedUrl);
-    } catch {
-      setError("Please enter a valid URL (e.g., example.com or https://example.com)");
-      return;
+    let processedUrl: string;
+    if (isWhatsAppPlatform(newPlatform)) {
+      const country = getDialCountryByIso(whatsappCountryIso);
+      if (!country) {
+        setError("Please select a valid country");
+        return;
+      }
+      const wa = buildWhatsAppUrlFromDialAndNational(country.dialCode, whatsappNational);
+      if (!wa.ok) {
+        setError(wa.error);
+        return;
+      }
+      processedUrl = wa.url;
+    } else {
+      processedUrl = newUrl.trim();
+      if (processedUrl && !processedUrl.match(/^https?:\/\//i)) {
+        processedUrl = `https://${processedUrl}`;
+      }
+      try {
+        new URL(processedUrl);
+      } catch {
+        setError("Please enter a valid URL (e.g., example.com or https://example.com)");
+        return;
+      }
     }
 
     setSaving(true);
@@ -170,12 +201,6 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
         setError("You must be logged in to add links. Please refresh the page.");
         setSaving(false);
         return;
-      }
-
-      // Auto-add https:// if URL doesn't have a protocol
-      let processedUrl = newUrl.trim();
-      if (processedUrl && !processedUrl.match(/^https?:\/\//i)) {
-        processedUrl = `https://${processedUrl}`;
       }
 
       const response = await fetch("/api/social/create", {
@@ -202,6 +227,8 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
       setLinks([...links, result.data[0]]);
       setNewPlatform("");
       setNewUrl("");
+      setWhatsappNational("");
+      setWhatsappCountryIso(guessDefaultCountryIso());
       setShowAddForm(false);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -342,7 +369,12 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
               </label>
               <select
                 value={newPlatform}
-                onChange={(e) => setNewPlatform(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setNewPlatform(v);
+                  if (isWhatsAppPlatform(v)) setNewUrl("");
+                  else setWhatsappNational("");
+                }}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select a platform</option>
@@ -353,25 +385,70 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                URL
-              </label>
-              <input
-                type="url"
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="example.com or https://example.com"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                We'll automatically add https:// if you don't include it
-              </p>
-            </div>
+            {isWhatsAppPlatform(newPlatform) ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Country / region
+                  </label>
+                  <select
+                    value={whatsappCountryIso}
+                    onChange={(e) => setWhatsappCountryIso(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    {WHATSAPP_DIAL_COUNTRIES.map((c) => (
+                      <option key={c.iso} value={c.iso}>
+                        {isoToFlagEmoji(c.iso)} {c.name} (+{c.dialCode})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Mobile number
+                  </label>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel-national"
+                    value={whatsappNational}
+                    onChange={(e) => setWhatsappNational(e.target.value)}
+                    placeholder="0300 1234567 or 300 1234567"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Enter your local mobile number only — no country code here. A leading{" "}
+                    <span className="font-mono">0</span> is removed automatically. You can also paste a{" "}
+                    <span className="font-mono">wa.me</span> link instead.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  URL
+                </label>
+                <input
+                  type="url"
+                  autoComplete="url"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  placeholder="example.com or https://example.com"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  We&apos;ll automatically add https:// if you don&apos;t include it
+                </p>
+              </div>
+            )}
             <div className="flex gap-2">
               <button
                 onClick={handleAddLink}
-                disabled={saving || !newPlatform || !newUrl}
+                disabled={
+                  saving ||
+                  !newPlatform ||
+                  (isWhatsAppPlatform(newPlatform) ? !whatsappNational.trim() : !newUrl.trim())
+                }
                 className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {saving ? "Adding..." : "Add Link"}
@@ -381,6 +458,8 @@ export default function SocialLinksForm({ userId, initialLinks = [], onLinkAdded
                   setShowAddForm(false);
                   setNewPlatform("");
                   setNewUrl("");
+                  setWhatsappNational("");
+                  setWhatsappCountryIso(guessDefaultCountryIso());
                   setError(null);
                 }}
                 className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
