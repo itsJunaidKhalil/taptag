@@ -48,9 +48,13 @@ export default function PreviewDrawer() {
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">
               Live preview
             </p>
-            <PhoneFrame>
-              <ProfileCard profile={profile} links={links} compact embedded />
-            </PhoneFrame>
+            {/* data-theme wrapper so PhoneFrame and ProfileCard share the same
+                CSS variable scope and the screen bg actually updates with theme */}
+            <div data-theme={draft.theme || "default"}>
+              <PhoneFrame>
+                <ProfileCard profile={profile} links={links} theme={draft.theme} compact />
+              </PhoneFrame>
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center max-w-[260px]">
               Updates instantly as you edit — visitors see the full-size version.
             </p>
@@ -114,9 +118,11 @@ export default function PreviewDrawer() {
               </button>
             </div>
             <div className="flex justify-center pb-2">
-              <PhoneFrame>
-                <ProfileCard profile={profile} links={links} compact embedded />
-              </PhoneFrame>
+              <div data-theme={draft.theme || "default"}>
+                <PhoneFrame>
+                  <ProfileCard profile={profile} links={links} theme={draft.theme} compact />
+                </PhoneFrame>
+              </div>
             </div>
           </div>
         </div>

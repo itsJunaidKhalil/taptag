@@ -43,7 +43,9 @@ export default function EditPage() {
       if (cancelled) return;
       setUser(u);
       try {
-        const profile = await getProfileById(u.id);
+        // Profile may not exist yet (legacy signups, OAuth callback that
+        // skipped the insert, etc). getProfileById returns null in that case.
+        const profile = await getProfileById(u.id).catch(() => null);
         let links: any[] = [];
         try {
           const {
@@ -61,9 +63,12 @@ export default function EditPage() {
         } catch {
           /* ignore */
         }
+        // initialize with profile=null still seeds the store with userId
+        // and an empty draft, so the editor remains usable.
         if (!cancelled) initialize(u.id, profile, links);
       } catch (e) {
         console.error("Editor load error:", e);
+        if (!cancelled) initialize(u.id, null, []);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -73,55 +78,64 @@ export default function EditPage() {
     };
   }, [router, initialize]);
 
+  const persistDraft = async (silent = true) => {
+    if (!userId) return false;
+    try {
+      setSaving(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expired — please refresh");
+        setSaving(false);
+        return false;
+      }
+      const payload = {
+        id: userId,
+        username: draft.username || null,
+        full_name: draft.full_name || null,
+        company: draft.company || null,
+        about: draft.about || null,
+        phone: draft.phone || null,
+        email: draft.email || null,
+        website: draft.website || null,
+        profile_image_url: draft.profile_image_url || null,
+        banner_image_url: draft.banner_image_url || null,
+        theme: draft.theme,
+      };
+      const res = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error || "Save failed");
+      markSaved();
+      if (!silent) toast.success("Saved");
+      return true;
+    } catch (e: any) {
+      setSaving(false);
+      toast.error(e.message || "Could not save");
+      return false;
+    }
+  };
+
   // Debounced auto-save — fires 800ms after last keystroke when dirty
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!isDirty || !userId) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        setSaving(true);
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) {
-          toast.error("Session expired — please refresh");
-          setSaving(false);
-          return;
-        }
-        const payload = {
-          id: userId,
-          username: draft.username || null,
-          full_name: draft.full_name || null,
-          company: draft.company || null,
-          about: draft.about || null,
-          phone: draft.phone || null,
-          email: draft.email || null,
-          website: draft.website || null,
-          profile_image_url: draft.profile_image_url || null,
-          banner_image_url: draft.banner_image_url || null,
-          theme: draft.theme,
-        };
-        const res = await fetch("/api/profile/update", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-        const result = await res.json();
-        if (!res.ok || result.error) throw new Error(result.error || "Save failed");
-        markSaved();
-      } catch (e: any) {
-        setSaving(false);
-        toast.error(e.message || "Could not save");
-      }
+    saveTimeoutRef.current = setTimeout(() => {
+      persistDraft(true);
     }, 800);
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [draft, isDirty, userId, setSaving, markSaved]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, isDirty, userId]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -173,7 +187,17 @@ export default function EditPage() {
                 )}
               </p>
             </div>
-            <SaveStatus />
+            <div className="flex items-center gap-2">
+              <SaveStatus />
+              <button
+                onClick={() => persistDraft(false)}
+                disabled={!isDirty}
+                className="px-4 py-2 rounded-2xl bg-gradient-primary text-white text-xs font-semibold shadow-soft hover:shadow-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                title="Save profile changes now"
+              >
+                Save now
+              </button>
+            </div>
           </div>
 
           <EditorTabs active={tab} />

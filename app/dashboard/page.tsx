@@ -32,12 +32,15 @@ export default function DashboardPage() {
     try {
       const profileData = await getProfileById(userId);
       setProfile(profileData);
-      // Show onboarding wizard for users who haven't completed it
-      if (profileData && !profileData.onboarding_completed_at) {
+      // Show onboarding wizard for new users (no profile row yet) or
+      // for existing users who never finished it.
+      if (!profileData || !profileData.onboarding_completed_at) {
         setShowOnboarding(true);
       }
     } catch (error) {
       console.error("Error loading profile:", error);
+      // If the lookup itself blows up, still let the user onboard.
+      setShowOnboarding(true);
     } finally {
       setLoading(false);
     }

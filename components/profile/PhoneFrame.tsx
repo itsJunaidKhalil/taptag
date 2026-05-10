@@ -4,8 +4,6 @@ import { ReactNode } from "react";
 
 interface PhoneFrameProps {
   children: ReactNode;
-  /** Optional accent color for the notch/dynamic island */
-  accent?: string;
 }
 
 export default function PhoneFrame({ children }: PhoneFrameProps) {
@@ -24,9 +22,14 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
         <span className="absolute left-[-3px] top-60 w-[3px] h-16 bg-black rounded-l" />
         <span className="absolute right-[-3px] top-32 w-[3px] h-20 bg-black rounded-r" />
 
+        {/*
+          Screen background pulls from the active CSS theme variable so
+          changing the theme in AppearanceTab actually repaints the whole
+          phone "screen", not just the text/links inside ProfileCard.
+        */}
         <div
-          className="relative bg-white rounded-[2.4rem] overflow-hidden"
-          style={{ height: 600 }}
+          className="relative rounded-[2.4rem] overflow-hidden"
+          style={{ height: 600, background: "var(--bg, #ffffff)" }}
         >
           {/* Dynamic island */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 w-24 h-6 bg-black rounded-full" />
