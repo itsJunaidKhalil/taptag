@@ -12,6 +12,8 @@ import { getPlatform } from "@/lib/platforms";
 import PlatformIcon from "./PlatformIcon";
 import CookieConsentModal from "./ui/CookieConsentModal";
 import ReportModal from "./ui/ReportModal";
+import EmptyState from "./ui/EmptyState";
+import { SkeletonLinkRow } from "./ui/Skeleton";
 import { getConsent } from "@/lib/consent";
 import {
   DndContext,
@@ -62,7 +64,7 @@ interface ProfilePageProps {
 export default function ProfilePageContent({ profile }: ProfilePageProps) {
   const [copied, setCopied] = useState(false);
   const [links, setLinks] = useState<SocialLink[]>([]);
-  const [loadingLinks, setLoadingLinks] = useState(false);
+  const [loadingLinks, setLoadingLinks] = useState(true);
   const linksFetchedRef = useRef(false);
   const trackedViewRef = useRef(false);
   const [localTheme, setLocalTheme] = useState<ThemeName>((profile.theme as ThemeName) || "default");
@@ -73,6 +75,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   const [savingOrder, setSavingOrder] = useState(false);
   const [cookieOpen, setCookieOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [themeToggleVisible, setThemeToggleVisible] = useState(true);
 
   const isOwner = !!userId && userId === profile.id;
 
@@ -206,6 +209,34 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
     });
   }, []);
 
+  // Auto-hide the floating theme toggle when scrolling down on mobile so it
+  // doesn't overlap content. Re-show when scrolling up or near the top/bottom.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const nearTop = y < 80;
+        const nearBottom = y + window.innerHeight > document.body.scrollHeight - 80;
+        if (nearTop || nearBottom) {
+          setThemeToggleVisible(true);
+        } else if (y > lastY + 6) {
+          setThemeToggleVisible(false);
+        } else if (y < lastY - 6) {
+          setThemeToggleVisible(true);
+        }
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // ---- Drag-and-drop reorder (only available to the profile owner) ----
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -322,7 +353,8 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
             {profile.username && (
               <button
                 onClick={handleShare}
-                className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
+                aria-label="Share profile"
+                className="flex items-center justify-center gap-1.5 w-10 h-10 sm:w-auto sm:h-auto sm:px-3.5 sm:py-2 rounded-full sm:rounded-2xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
                 style={{
                   background:
                     "linear-gradient(135deg, var(--primary, #6366f1), var(--secondary, #8b5cf6))",
@@ -340,7 +372,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                   />
                 </svg>
                 <span className="hidden sm:inline">{copied ? "Copied!" : "Share"}</span>
-                <span className="sm:hidden">{copied ? "Copied" : "Share"}</span>
+                <span className="sr-only sm:hidden">{copied ? "Copied" : "Share"}</span>
               </button>
             )}
           </div>
@@ -415,11 +447,10 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
 
           <div className="mb-8">
             {loadingLinks ? (
-              <div className="glass p-8 rounded-3xl text-center shadow-soft">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                <p className="mt-4 text-sm" style={{ color: "var(--text)", opacity: 0.7 }}>
-                  Loading links...
-                </p>
+              <div className="space-y-3">
+                <SkeletonLinkRow />
+                <SkeletonLinkRow />
+                <SkeletonLinkRow />
               </div>
             ) : links && links.length > 0 ? (
               <div className="space-y-4">
@@ -528,9 +559,17 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 )}
               </div>
             ) : (
-              <div className="glass p-8 rounded-3xl text-center shadow-soft">
-                <p style={{ color: "var(--text)", opacity: 0.7 }}>No social links available yet</p>
-              </div>
+              <EmptyState
+                illustration="links"
+                title={isOwner ? "No links yet" : "Nothing here yet"}
+                description={
+                  isOwner
+                    ? "Add your first social link or call-to-action so visitors can connect with you."
+                    : `${profile.full_name || profile.username || "This user"} hasn't added any links yet. Check back soon!`
+                }
+                ctaLabel={isOwner ? "Add your first link" : undefined}
+                ctaHref={isOwner ? "/dashboard/edit?tab=links" : undefined}
+              />
             )}
           </div>
 
@@ -775,7 +814,14 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
         </div>
       </div>
 
-      <div className="fixed bottom-4 right-4 z-50">
+      <div
+        className="fixed bottom-4 right-4 z-50 transition-all duration-300 ease-out"
+        style={{
+          transform: themeToggleVisible ? "translateY(0)" : "translateY(120%)",
+          opacity: themeToggleVisible ? 1 : 0,
+          pointerEvents: themeToggleVisible ? "auto" : "none",
+        }}
+      >
         <ProfileThemeToggle currentTheme={theme as ThemeName} onThemeChange={handleThemeChange} />
       </div>
 

@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import QRCode from "@/components/QRCode";
 import { toast } from "sonner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -76,11 +77,14 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
         <Navbar />
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <Skeleton className="h-10 w-48 mb-3" rounded="2xl" />
+          <Skeleton className="h-5 w-72 mb-8" rounded="md" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 sm:mb-12">
+            <Skeleton className="h-44 w-full" rounded="3xl" />
+            <Skeleton className="h-44 w-full" rounded="3xl" />
           </div>
+          <Skeleton className="h-64 w-full" rounded="3xl" />
         </div>
       </div>
     );
