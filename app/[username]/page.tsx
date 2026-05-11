@@ -37,6 +37,13 @@ export async function generateMetadata({
     `${displayName}'s digital business card on TapTag. Connect, save contact, follow socials.`;
   const url = `${SITE_URL}/${profile.username}`;
 
+  const ogImage = {
+    url: `/${profile.username}/opengraph-image`,
+    width: 1200,
+    height: 630,
+    alt: `${displayName} on TapTag`,
+  };
+
   return {
     title,
     description,
@@ -47,13 +54,20 @@ export async function generateMetadata({
       description,
       url,
       siteName: "TapTag",
-      images: [`/${profile.username}/opengraph-image`],
+      images: [ogImage],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [`/${profile.username}/twitter-image`],
+      images: [
+        {
+          url: `/${profile.username}/twitter-image`,
+          width: 1200,
+          height: 630,
+          alt: `${displayName} on TapTag`,
+        },
+      ],
     },
     robots: { index: true, follow: true },
   };

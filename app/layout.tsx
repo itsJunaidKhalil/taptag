@@ -17,7 +17,23 @@ const inter = Inter({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://taptag.biz";
+// Resolve the canonical site URL. Falls back to the Vercel-provided
+// production URL when NEXT_PUBLIC_APP_URL isn't configured, which avoids
+// the failure mode where every og:image / canonical / sitemap entry points
+// to the wrong host and share previews silently break.
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_APP_URL;
+  const vercelProd = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+  const vercel = process.env.NEXT_PUBLIC_VERCEL_URL;
+  const raw =
+    explicit ||
+    (vercelProd ? `https://${vercelProd}` : "") ||
+    (vercel ? `https://${vercel}` : "") ||
+    "https://taptag.biz";
+  return raw.replace(/\/+$/, "");
+}
+
+const SITE_URL = resolveSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -39,6 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from("profiles")
       .select("username, updated_at")
       .not("username", "is", null)
+      .is("deleted_at", null)
+      .not("onboarding_completed_at", "is", null)
       .limit(5000);
 
     if (error || !data) return staticUrls;
