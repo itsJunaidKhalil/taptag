@@ -48,6 +48,7 @@ export async function getProfile(username: string) {
     .from("profiles")
     .select("*")
     .eq("username", currentUsername)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (error) {
