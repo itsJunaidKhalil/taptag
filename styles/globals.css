@@ -142,6 +142,36 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none;
 }
 
+/* Skeleton shimmer (themed via CSS vars so it works on light + dark profiles) */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text, #0a0a0a) 8%, transparent);
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text, #0a0a0a) 6%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
 /* Gradient Text */
 .gradient-text {
   background: linear-gradient(135deg, #4A3AFF 0%, #00C4B4 100%);
