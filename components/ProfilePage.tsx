@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import SocialButton from "./SocialButton";
 import Image from "next/image";
@@ -13,6 +13,25 @@ import PlatformIcon from "./PlatformIcon";
 import CookieConsentModal from "./ui/CookieConsentModal";
 import ReportModal from "./ui/ReportModal";
 import { getConsent } from "@/lib/consent";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
@@ -48,35 +67,43 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   const trackedViewRef = useRef(false);
   const [localTheme, setLocalTheme] = useState<ThemeName>((profile.theme as ThemeName) || "default");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showQrMobile, setShowQrMobile] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(true);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [cookieOpen, setCookieOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchLinks = async () => {
-      try {
-        const timestamp = Date.now();
-        const response = await fetch(`/api/profile/${profile.username}/links?t=${timestamp}`, {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache" },
-        });
-        if (!response.ok) return;
-        const data = await response.json();
-        if (data.links && Array.isArray(data.links)) {
-          setLinks(data.links);
-          linksFetchedRef.current = true;
-        }
-      } catch (error) {
-        console.error("Error fetching links:", error);
-      } finally {
-        setLoadingLinks(false);
-      }
-    };
+  const isOwner = !!userId && userId === profile.id;
 
+  const fetchLinks = useCallback(async () => {
+    try {
+      const timestamp = Date.now();
+      const response = await fetch(`/api/profile/${profile.username}/links?t=${timestamp}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data.links && Array.isArray(data.links)) {
+        setLinks(data.links);
+        linksFetchedRef.current = true;
+      }
+    } catch (error) {
+      console.error("Error fetching links:", error);
+    } finally {
+      setLoadingLinks(false);
+    }
+  }, [profile.username]);
+
+  useEffect(() => {
     fetchLinks();
+    // Pause polling while the owner is reordering to avoid races
+    // between optimistic local state and the periodic refetch.
+    if (reorderMode) return;
     const interval = setInterval(fetchLinks, 3000);
     return () => clearInterval(interval);
-  }, [profile.username]);
+  }, [fetchLinks, reorderMode]);
 
   useEffect(() => {
     if (trackedViewRef.current) return;
@@ -175,8 +202,55 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
+      setUserId(user?.id || null);
     });
   }, []);
+
+  // ---- Drag-and-drop reorder (only available to the profile owner) ----
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleReorderEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = links.findIndex((l) => l.id === active.id);
+    const newIndex = links.findIndex((l) => l.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(links, oldIndex, newIndex).map((l, i) => ({
+      ...l,
+      order_index: i,
+    }));
+    setLinks(reordered);
+    setSavingOrder(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to reorder");
+        return;
+      }
+      const res = await fetch("/api/social/reorder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ orderedIds: reordered.map((l) => l.id) }),
+      });
+      const r = await res.json().catch(() => ({}));
+      if (!res.ok || r.error) throw new Error(r.error || "Could not save order");
+    } catch (e: any) {
+      toast.error(e.message || "Could not save order");
+      fetchLinks(); // revert local state to DB truth
+    } finally {
+      setSavingOrder(false);
+    }
+  };
 
   return (
     <div
@@ -349,39 +423,109 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
               </div>
             ) : links && links.length > 0 ? (
               <div className="space-y-4">
-                <h2
-                  className="text-2xl font-heading font-semibold mb-6 text-center sm:text-left"
-                  style={{ color: "var(--text)" }}
-                >
-                  Connect with me
-                </h2>
-                {links.map((link) => (
-                  <SocialButton
-                    key={link.id}
-                    platform={link.platform}
-                    url={link.url}
-                    linkId={link.id}
-                    title={link.title}
-                    onClick={() => handleLinkClick(link.id)}
-                    onShare={(url, platform) => {
-                      const consent = getConsent();
-                      if (!consent.analytics) return;
-                      const platformType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent)
-                        ? "mobile"
-                        : "desktop";
-                      fetch("/api/analytics", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          profile_id: profile.id,
-                          event_type: "link_share",
-                          platform: platformType,
-                          link_platform: platform,
-                        }),
-                      }).catch(() => {});
-                    }}
-                  />
-                ))}
+                <div className="flex items-center justify-between gap-3 mb-6">
+                  <h2
+                    className="text-2xl font-heading font-semibold text-center sm:text-left"
+                    style={{ color: "var(--text)" }}
+                  >
+                    Connect with me
+                  </h2>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => setReorderMode((v) => !v)}
+                      className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-full transition-all hover:scale-[1.03] active:scale-95 border"
+                      style={{
+                        backgroundColor: reorderMode
+                          ? "var(--primary, #6366f1)"
+                          : "var(--glass-bg, rgba(0,0,0,0.06))",
+                        color: reorderMode ? "#fff" : "var(--text)",
+                        borderColor: "var(--glass-border, rgba(0,0,0,0.08))",
+                      }}
+                      title={reorderMode ? "Finish reordering" : "Drag to reorder your links"}
+                    >
+                      {reorderMode ? (
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          Done
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 8h16M4 16h16"
+                            />
+                          </svg>
+                          Reorder
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                {isOwner && reorderMode ? (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleReorderEnd}
+                  >
+                    <SortableContext
+                      items={links.map((l) => l.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3">
+                        {links.map((link) => (
+                          <SortableProfileLink key={link.id} link={link} />
+                        ))}
+                      </div>
+                    </SortableContext>
+                    {savingOrder && (
+                      <p
+                        className="text-xs text-center mt-3"
+                        style={{ color: "var(--text)", opacity: 0.6 }}
+                      >
+                        Saving new order…
+                      </p>
+                    )}
+                  </DndContext>
+                ) : (
+                  links.map((link) => (
+                    <SocialButton
+                      key={link.id}
+                      platform={link.platform}
+                      url={link.url}
+                      linkId={link.id}
+                      title={link.title}
+                      onClick={() => handleLinkClick(link.id)}
+                      onShare={(url, platform) => {
+                        const consent = getConsent();
+                        if (!consent.analytics) return;
+                        const platformType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent)
+                          ? "mobile"
+                          : "desktop";
+                        fetch("/api/analytics", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            profile_id: profile.id,
+                            event_type: "link_share",
+                            platform: platformType,
+                            link_platform: platform,
+                          }),
+                        }).catch(() => {});
+                      }}
+                    />
+                  ))
+                )}
               </div>
             ) : (
               <div className="glass p-8 rounded-3xl text-center shadow-soft">
@@ -509,32 +653,60 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 </a>
               </div>
 
-              {/* Mobile: collapse QR behind a toggle so links are seen first */}
-              <div className="sm:hidden text-center">
-                {!showQrMobile ? (
+              {showQr ? (
+                <div className="relative glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
                   <button
-                    onClick={() => setShowQrMobile(true)}
-                    className="text-sm font-semibold underline"
-                    style={{ color: "var(--text)", opacity: 0.7 }}
+                    type="button"
+                    onClick={() => setShowQr(false)}
+                    aria-label="Minimize QR code"
+                    title="Minimize QR code"
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 border"
+                    style={{
+                      backgroundColor: "var(--glass-bg, rgba(0,0,0,0.06))",
+                      color: "var(--text)",
+                      borderColor: "var(--glass-border, rgba(0,0,0,0.08))",
+                    }}
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                  <QRCode
+                    url={`${baseUrl}/${profile.username}`}
+                    size={180}
+                    showTitle
+                    showDownload
+                  />
+                </div>
+              ) : (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowQr(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 border shadow-soft"
+                    style={{
+                      backgroundColor: "var(--glass-bg, rgba(255,255,255,0.85))",
+                      color: "var(--text)",
+                      borderColor: "var(--glass-border, rgba(0,0,0,0.08))",
+                    }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z"
+                      />
+                    </svg>
                     Show QR code
                   </button>
-                ) : (
-                  <div className="glass p-6 rounded-3xl shadow-soft-lg">
-                    <QRCode
-                      url={`${baseUrl}/${profile.username}`}
-                      size={180}
-                      showTitle
-                      showDownload
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop: always show */}
-              <div className="hidden sm:block glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
-                <QRCode url={`${baseUrl}/${profile.username}`} size={180} showTitle showDownload />
-              </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -616,6 +788,63 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
           profileId={profile.id}
         />
       )}
+    </div>
+  );
+}
+
+// Sortable row used only when the profile owner is actively reordering.
+// Shows a visible drag handle on the left, link icon+label in the middle,
+// and remains keyboard-accessible via @dnd-kit's KeyboardSensor.
+function SortableProfileLink({ link }: { link: SocialLink }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: link.id,
+  });
+  const p = getPlatform(link.platform);
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="glass flex items-center gap-3 p-3 sm:p-4 rounded-2xl shadow-soft border"
+    >
+      <button
+        type="button"
+        aria-label="Drag to reorder"
+        title="Drag to reorder"
+        className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
+        style={{
+          backgroundColor: "var(--glass-bg, rgba(0,0,0,0.06))",
+          color: "var(--text)",
+        }}
+        {...attributes}
+        {...listeners}
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M7 4a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm6-10a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2z" />
+        </svg>
+      </button>
+      <div
+        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+        style={{ backgroundColor: p.brandColor, color: "#fff" }}
+      >
+        <PlatformIcon platform={link.platform} className="w-5 h-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold truncate" style={{ color: "var(--text)" }}>
+          {link.title || p.name}
+        </p>
+        <p
+          className="text-xs sm:text-sm truncate"
+          style={{ color: "var(--text)", opacity: 0.65 }}
+        >
+          {link.url}
+        </p>
+      </div>
     </div>
   );
 }
