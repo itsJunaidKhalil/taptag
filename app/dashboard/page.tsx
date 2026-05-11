@@ -10,6 +10,8 @@ import QRCode from "@/components/QRCode";
 import { toast } from "sonner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import EmailVerificationBanner from "@/components/account/EmailVerificationBanner";
+import AccountRecoveryBanner from "@/components/account/AccountRecoveryBanner";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -97,6 +99,13 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
+      <AccountRecoveryBanner
+        profileId={profile?.id}
+        deletedAt={profile?.deleted_at}
+        scheduledDeletionAt={profile?.scheduled_deletion_at}
+        onRestored={() => loadProfile(user.id)}
+      />
+      <EmailVerificationBanner />
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8 sm:mb-12">

@@ -13,6 +13,7 @@ import LinksTab from "@/components/editor/LinksTab";
 import AppearanceTab from "@/components/editor/AppearanceTab";
 import PreviewDrawer from "@/components/editor/PreviewDrawer";
 import SaveStatus from "@/components/editor/SaveStatus";
+import EmailVerificationBanner from "@/components/account/EmailVerificationBanner";
 import { toast } from "sonner";
 
 export default function EditPage() {
@@ -165,6 +166,7 @@ export default function EditPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
+      <EmailVerificationBanner />
       <Navbar />
 
       <div className="lg:pr-[400px] transition-all">

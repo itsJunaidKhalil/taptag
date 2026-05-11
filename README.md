@@ -72,15 +72,18 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
 
 5. **Set up the database**
 
-   **For an existing project**, run the Tier 1 migration:
+   **For an existing project**, run the migrations in order:
 
    ```bash
-   # In Supabase SQL editor, paste the contents of:
-   supabase/migrations/20260510_tier1_overhaul.sql
+   # In Supabase SQL editor, paste the contents of each file:
+   supabase/migrations/20260510_tier1_overhaul.sql        # Tier 1
+   supabase/migrations/20260511_account_lifecycle.sql     # GDPR soft-delete
    ```
 
-   This is fully additive (uses `if not exists` everywhere) — safe to run on
-   production with zero downtime. It adds:
+   Both migrations are fully additive (use `if not exists` everywhere) —
+   safe to run on production with zero downtime.
+
+   **20260510 (Tier 1)** adds:
 
    - `profiles.onboarding_completed_at` (controls the wizard)
    - `social_links.block_type`, `title`, `subtitle`, `thumbnail_url`,
@@ -89,6 +92,17 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
    - `reorder_social_links()` Postgres function (atomic drag-and-drop)
    - Indexes on `social_links(user_id, order_index)` and
      `profiles(lower(username))`
+
+   **20260511 (GDPR / account lifecycle)** adds:
+
+   - `profiles.deleted_at`, `profiles.scheduled_deletion_at`
+   - Partial indexes to keep public lookups fast and to power the future
+     hard-delete cron
+   - Public lookups (`getProfile`) automatically filter
+     `deleted_at IS NULL`, so soft-deleted accounts 404 immediately
+   - Powers `/api/account/delete`, `/api/account/restore`,
+     `/api/account/export`, `/api/auth/resend-verification`, and the
+     new `/dashboard/settings` page
 
    **For a fresh setup**, run the base schema below first, then the migration:
 

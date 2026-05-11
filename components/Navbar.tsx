@@ -123,6 +123,16 @@ export default function Navbar() {
                     View Profile
                   </Link>
                 )}
+                <Link
+                  href="/dashboard/settings"
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    isActive("/dashboard/settings")
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
+                  }`}
+                >
+                  Settings
+                </Link>
                 <ThemeToggle />
                 <button
                   onClick={handleSignOut}
@@ -244,6 +254,17 @@ export default function Navbar() {
                   }`}
                 >
                   Analytics
+                </Link>
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-4 py-2 rounded-xl text-base font-medium transition-all ${
+                    isActive("/dashboard/settings")
+                      ? "bg-gradient-primary text-white shadow-glow"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                  }`}
+                >
+                  Settings
                 </Link>
                 <div className="px-4 py-2 flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Theme</span>
