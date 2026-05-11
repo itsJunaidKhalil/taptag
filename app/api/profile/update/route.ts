@@ -50,6 +50,21 @@ export async function POST(req: NextRequest) {
     const newUsername = updateData.username ?? null;
     const now = new Date().toISOString();
 
+    // Strip privileged columns from the user-supplied payload so a self-
+    // service profile update can never escalate to admin or undo a
+    // soft-delete. These columns are only writable by /api/admin/*.
+    const PRIVILEGED = new Set([
+      "role",
+      "deleted_at",
+      "scheduled_deletion_at",
+      "id",
+      "email",
+    ]);
+    const safeUpdate: Record<string, any> = {};
+    for (const [k, v] of Object.entries(updateData)) {
+      if (!PRIVILEGED.has(k)) safeUpdate[k] = v;
+    }
+
     // Single atomic upsert — creates the row if missing, updates it if present.
     // This is the self-healing fix for users whose profile row never got created
     // at signup (otherwise social_links FK violations follow).
@@ -59,7 +74,7 @@ export async function POST(req: NextRequest) {
         {
           id,
           email: user.email,
-          ...updateData,
+          ...safeUpdate,
           updated_at: now,
         },
         { onConflict: "id" },
