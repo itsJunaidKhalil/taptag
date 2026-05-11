@@ -133,6 +133,15 @@ h1, h2, h3, h4, h5, h6 {
   background: #3B2ECC;
 }
 
+/* Hide scrollbar but keep scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Gradient Text */
 .gradient-text {
   background: linear-gradient(135deg, #4A3AFF 0%, #00C4B4 100%);

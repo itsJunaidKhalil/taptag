@@ -116,7 +116,7 @@ export default function RegisterPage() {
                 Check your email!
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                We've sent a confirmation link to <strong className="text-gray-900 dark:text-white">{email}</strong>
+                We&apos;ve sent a confirmation link to <strong className="text-gray-900 dark:text-white">{email}</strong>
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
                 Please click the link in the email to verify your account and complete your registration.

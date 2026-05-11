@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
 interface ImageUploaderProps {
@@ -127,7 +128,7 @@ export default function ImageUploader({
       console.error("Error uploading image:", error);
       const errorMessage = error.message || "Error uploading image. Please try again.";
       setError(errorMessage);
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
