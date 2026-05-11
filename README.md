@@ -78,9 +78,10 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
    # In Supabase SQL editor, paste the contents of each file:
    supabase/migrations/20260510_tier1_overhaul.sql        # Tier 1
    supabase/migrations/20260511_account_lifecycle.sql     # GDPR soft-delete
+   supabase/migrations/20260512_admin.sql                 # Admin dashboard
    ```
 
-   Both migrations are fully additive (use `if not exists` everywhere) —
+   All migrations are fully additive (use `if not exists` everywhere) —
    safe to run on production with zero downtime.
 
    **20260510 (Tier 1)** adds:
@@ -103,6 +104,36 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
    - Powers `/api/account/delete`, `/api/account/restore`,
      `/api/account/export`, `/api/auth/resend-verification`, and the
      new `/dashboard/settings` page
+
+   **20260512 (Admin dashboard)** adds:
+
+   - `profiles.role` (`'user'` | `'admin'`, default `'user'`) with a
+     check constraint and a partial index on admins
+   - `reports.resolved_at`, `reports.resolved_by`, `reports.resolution_note`
+     so the admin queue can triage submissions
+   - `audit_log` table (admin-only) capturing every privileged mutation
+   - Re-creates the `social_links` and `analytics` foreign keys with
+     `ON DELETE CASCADE` so hard-deletes propagate cleanly
+   - Seeds `itsjunaidkhalil@gmail.com` as the first admin if that auth
+     user already exists. To promote any other account, run:
+
+     ```sql
+     update profiles set role = 'admin'
+       where id = (select id from auth.users
+                    where lower(email) = lower('YOUR@EMAIL.COM'));
+     ```
+
+   - Powers `/admin`, `/admin/users`, `/admin/users/[id]`,
+     `/admin/reports`, `/api/admin/check`, `/api/admin/stats`,
+     `/api/admin/users` (list + CSV export), `/api/admin/users/[id]`
+     (detail + role change + hard-delete), `/api/admin/reports` (list
+     + resolve/dismiss), and `/api/admin/audit-log`
+
+   > Security note: every `/api/admin/*` route verifies
+   > `profiles.role = 'admin'` server-side with the service role key.
+   > `/api/profile/update` strips `role`, `deleted_at`, and
+   > `scheduled_deletion_at` from user-submitted payloads so a regular
+   > user cannot self-promote.
 
    **For a fresh setup**, run the base schema below first, then the migration:
 
