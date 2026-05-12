@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -52,10 +52,69 @@ export default function SocialLinksForm({
   const [newUrl, setNewUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [pasting, setPasting] = useState(false);
+
+  // We keep refs to the URL input + the wrapping field so we can
+  // (a) auto-focus the input the moment a platform is picked
+  // (b) scroll the field into view on small screens where the picker grid
+  //     pushes the URL field below the fold.
+  const urlInputRef = useRef<HTMLInputElement | null>(null);
+  const urlFieldRef = useRef<HTMLDivElement | null>(null);
+  // Track whether we've recently opened the platform's "get link" tab so we
+  // can offer a one-click clipboard paste when the user comes back.
+  const awaitingClipboardRef = useRef(false);
 
   useEffect(() => {
     setLinks(initialLinks);
   }, [initialLinks]);
+
+  // Whenever a platform is freshly picked, smoothly scroll the URL field
+  // into view and focus the input. Honors `prefers-reduced-motion` so users
+  // with that setting don't get jolted around.
+  useEffect(() => {
+    if (!newPlatform) return;
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    requestAnimationFrame(() => {
+      urlFieldRef.current?.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "center",
+      });
+      urlInputRef.current?.focus({ preventScroll: true });
+    });
+  }, [newPlatform]);
+
+  // When the user comes back from the "Open <Platform>" tab, try to read
+  // their clipboard. If it's a URL that matches the chosen platform's host,
+  // offer a one-tap apply via the toast action.
+  useEffect(() => {
+    if (!showAddForm || !newPlatform) return;
+    const handler = async () => {
+      if (!awaitingClipboardRef.current) return;
+      awaitingClipboardRef.current = false;
+      try {
+        const text = (await navigator.clipboard.readText()).trim();
+        if (!text || text === newUrl) return;
+        const looksLikeUrlOrHandle =
+          /^https?:\/\//i.test(text) ||
+          /^@?[\w.\-]{1,40}$/.test(text) ||
+          /^[+\d][\d\s().\-]{4,20}$/.test(text);
+        if (!looksLikeUrlOrHandle) return;
+        toast("Use clipboard content?", {
+          description: text.length > 60 ? text.slice(0, 60) + "…" : text,
+          action: {
+            label: "Paste",
+            onClick: () => setNewUrl(text),
+          },
+        });
+      } catch {
+        /* clipboard permission denied — silently ignore */
+      }
+    };
+    window.addEventListener("focus", handler);
+    return () => window.removeEventListener("focus", handler);
+  }, [showAddForm, newPlatform, newUrl]);
 
   const updateLinks = (next: SocialLink[]) => {
     setLinks(next);
@@ -244,22 +303,66 @@ export default function SocialLinksForm({
           <PlatformPicker value={newPlatform} onChange={setNewPlatform} />
 
           {newPlatform && (
-            <div className="mt-5 space-y-3">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <div ref={urlFieldRef} className="mt-5 space-y-3 scroll-mt-24">
+              <label
+                htmlFor="new-link-url"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 {getPlatform(newPlatform).name} URL or handle
               </label>
               <input
+                id="new-link-url"
+                ref={urlInputRef}
                 type="text"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 placeholder={getPlatform(newPlatform).placeholderUrl}
-                className="w-full px-4 py-3 border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 dark:bg-gray-800/70 text-gray-900 dark:text-white transition-all"
+                className="w-full px-4 py-3 min-h-[48px] border-2 border-gray-300/50 dark:border-gray-600/50 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/70 dark:bg-gray-800/70 text-gray-900 dark:text-white transition-all"
+                inputMode={
+                  getPlatform(newPlatform).id === "phone" ||
+                  getPlatform(newPlatform).id === "whatsapp" ||
+                  getPlatform(newPlatform).id === "sms"
+                    ? "tel"
+                    : getPlatform(newPlatform).id === "email"
+                      ? "email"
+                      : "url"
+                }
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
               />
               {getPlatform(newPlatform).urlHint && (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getPlatform(newPlatform).urlHint}
                 </p>
               )}
+              <GetLinkRow
+                platformId={newPlatform}
+                onOpenedExternalTab={() => {
+                  awaitingClipboardRef.current = true;
+                }}
+                onPaste={async () => {
+                  if (pasting) return;
+                  setPasting(true);
+                  try {
+                    const text = (await navigator.clipboard.readText()).trim();
+                    if (!text) {
+                      toast.error("Clipboard is empty");
+                      return;
+                    }
+                    setNewUrl(text);
+                    toast.success("Pasted from clipboard");
+                    urlInputRef.current?.focus();
+                  } catch {
+                    toast.error(
+                      "Clipboard access blocked. Paste with Ctrl/⌘+V instead.",
+                    );
+                  } finally {
+                    setPasting(false);
+                  }
+                }}
+                pasting={pasting}
+              />
             </div>
           )}
 
@@ -364,6 +467,68 @@ function SortableLinkRow({
           />
         </svg>
       </button>
+    </div>
+  );
+}
+
+function GetLinkRow({
+  platformId,
+  onOpenedExternalTab,
+  onPaste,
+  pasting,
+}: {
+  platformId: string;
+  onOpenedExternalTab: () => void;
+  onPaste: () => void;
+  pasting: boolean;
+}) {
+  const p = getPlatform(platformId);
+  const canOpen = !!p.getLinkUrl;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 pt-1">
+      {canOpen && (
+        <a
+          href={p.getLinkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onOpenedExternalTab}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/80 dark:bg-gray-800/80 border border-gray-300/60 dark:border-gray-600/60 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-all"
+          title={`Open ${p.name} so you can copy your profile link`}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            />
+          </svg>
+          Open {p.name}
+        </a>
+      )}
+      <button
+        type="button"
+        onClick={onPaste}
+        disabled={pasting}
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/80 dark:bg-gray-800/80 border border-gray-300/60 dark:border-gray-600/60 hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-all disabled:opacity-60"
+        title="Paste from clipboard"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+        {pasting ? "Pasting…" : "Paste from clipboard"}
+      </button>
+      {canOpen && (
+        <span className="text-[11px] text-gray-500 dark:text-gray-400 italic">
+          Tip: copy your profile URL in the new tab, then come back here.
+        </span>
+      )}
     </div>
   );
 }
