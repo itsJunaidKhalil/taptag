@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import CookieConsentModal from "@/components/ui/CookieConsentModal";
 import ReportContentModal from "@/components/ui/ReportContentModal";
+import TapTagLogo from "@/components/TapTagLogo";
 
 // Routes where the global footer should be suppressed. The admin shell
 // has its own chrome, and the public profile page already exposes Privacy
@@ -46,23 +47,12 @@ export default function Footer() {
     <>
       <footer className="mt-16 sm:mt-20 border-t border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-            <div>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 font-heading font-bold text-base"
-              >
-                <span
-                  className="w-7 h-7 rounded-xl text-white text-xs flex items-center justify-center shadow-soft"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, var(--primary, #6366f1), var(--secondary, #8b5cf6))",
-                  }}
-                >
-                  T
-                </span>
-                TapTag
-              </Link>
+          {/* Layout swaps from centered-stack on mobile to two-column on
+              tablets+ so the brand block and link nav sit side-by-side at
+              larger sizes. */}
+          <div className="flex flex-col items-center text-center gap-5 sm:flex-row sm:items-start sm:justify-between sm:text-left sm:gap-6">
+            <div className="flex flex-col items-center sm:items-start">
+              <TapTagLogo href="/" variant="default" size="md" />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-sm">
                 Your digital business card. Share all your links, contact info
                 and socials from one branded URL.
@@ -71,7 +61,7 @@ export default function Footer() {
 
             <nav
               aria-label="Footer"
-              className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
+              className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm sm:justify-end"
             >
               <Link
                 href="/privacy"
@@ -102,7 +92,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          <div className="mt-6 pt-5 border-t border-gray-200/50 dark:border-gray-800/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="mt-6 pt-5 border-t border-gray-200/50 dark:border-gray-800/50 flex flex-col items-center gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left sm:gap-3">
             <p className="text-xs text-gray-500 dark:text-gray-400">
               © {year} TapTag. All rights reserved.
             </p>

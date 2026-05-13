@@ -31,8 +31,9 @@ export async function GET(
 
     return new Response(vcf, {
       headers: {
-        "Content-Type": "text/vcard",
+        "Content-Type": "text/vcard; charset=utf-8",
         "Content-Disposition": `attachment; filename="${username}.vcf"`,
+        "Cache-Control": "no-store",
       },
     });
   } catch (error: any) {
