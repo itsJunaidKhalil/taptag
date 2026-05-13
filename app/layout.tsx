@@ -79,9 +79,9 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  icons: {
-    icon: "/favicon.ico",
-  },
+  // Icons are auto-detected from app/icon.tsx + app/apple-icon.tsx (and from
+  // app/[username]/icon.tsx on individual profile routes). No manual override
+  // here so Next.js picks the right source per route.
 };
 
 export default function RootLayout({
