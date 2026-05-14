@@ -34,6 +34,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
+import { publicContactEmail } from "@/lib/publicContact";
 
 interface Profile {
   id: string;
@@ -43,6 +44,7 @@ interface Profile {
   about: string | null;
   phone: string | null;
   email: string | null;
+  contact_email?: string | null;
   website: string | null;
   profile_image_url: string | null;
   banner_image_url: string | null;
@@ -63,6 +65,7 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePageContent({ profile }: ProfilePageProps) {
+  const displayContact = publicContactEmail(profile);
   const [copied, setCopied] = useState(false);
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [loadingLinks, setLoadingLinks] = useState(true);
@@ -574,7 +577,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
             )}
           </div>
 
-          {(profile.phone || profile.email || profile.website) && (
+          {(profile.phone || displayContact || profile.website) && (
             <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg mb-8">
               <h2
                 className="text-2xl font-heading font-semibold mb-6 text-center sm:text-left"
@@ -611,9 +614,9 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                     </span>
                   </a>
                 )}
-                {profile.email && (
+                {displayContact && (
                   <a
-                    href={`mailto:${profile.email}`}
+                    href={`mailto:${displayContact}`}
                     className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
                   >
                     <div className="w-12 h-12 glass rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform flex-shrink-0 border border-white/20">
@@ -635,7 +638,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                       className="font-medium transition-colors flex-1"
                       style={{ color: "var(--text)" }}
                     >
-                      {profile.email}
+                      {displayContact}
                     </span>
                   </a>
                 )}
@@ -728,7 +731,8 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                       profile_image_url: profile.profile_image_url,
                       banner_image_url: profile.banner_image_url,
                       company_logo_url: profile.company_logo_url ?? null,
-                    }}
+                    contact_email: profile.contact_email?.trim() || null,
+                  }}
                   />
                 </div>
               ) : (

@@ -256,7 +256,7 @@ export default function ProfileTab({ userId }: ProfileTabProps) {
       {/* ── Contact ─────────────────────────────────────────────────── */}
       <Section
         title="Contact"
-        helper="These power the Save-to-contacts button on your card."
+        helper="Phone and public email appear on your live card, vCard download, and digital QR card. Login email is separate (see Dashboard → Settings)."
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           <Field label="Phone">
@@ -270,13 +270,16 @@ export default function ProfileTab({ userId }: ProfileTabProps) {
               inputMode="tel"
             />
           </Field>
-          <Field label="Email">
+          <Field
+            label="Public contact email"
+            helper="Use your work or business address here. It does not change how you sign in."
+          >
             <input
               type="email"
-              value={draft.email}
-              onChange={(e) => updateField("email", e.target.value)}
+              value={draft.contact_email}
+              onChange={(e) => updateField("contact_email", e.target.value)}
               className={inputClass}
-              placeholder="hello@example.com"
+              placeholder="you@company.com"
               autoComplete="email"
               inputMode="email"
               autoCapitalize="none"

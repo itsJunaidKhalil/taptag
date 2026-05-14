@@ -63,7 +63,10 @@ export default function PrivacyPage() {
             <h3 className="subhead">Profile content you choose to publish</h3>
             <ul>
               <li>Username, full name, company/role, short bio.</li>
-              <li>Phone number, contact email, website.</li>
+              <li>
+                Phone number, public contact email (can differ from your login
+                email), website.
+              </li>
               <li>Profile photo and banner image.</li>
               <li>Links to your social profiles and any custom links.</li>
               <li>Theme preferences and link ordering.</li>

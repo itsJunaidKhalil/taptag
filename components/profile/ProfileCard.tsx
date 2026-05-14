@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ThemeName } from "@/utils/themes";
 import { getPlatform } from "@/lib/platforms";
 import PlatformIcon from "@/components/PlatformIcon";
+import { publicContactEmail } from "@/lib/publicContact";
 
 export interface ProfileCardData {
   id?: string;
@@ -13,6 +14,8 @@ export interface ProfileCardData {
   about: string | null;
   phone: string | null;
   email: string | null;
+  /** When set, shown on the card instead of `email` (login mirror). */
+  contact_email?: string | null;
   website: string | null;
   profile_image_url: string | null;
   banner_image_url: string | null;
@@ -48,6 +51,7 @@ export default function ProfileCard({
   embedded = false,
 }: ProfileCardProps) {
   const activeTheme: string = theme || profile.theme || "default";
+  const displayEmail = publicContactEmail(profile);
 
   return (
     <div
@@ -197,7 +201,7 @@ export default function ProfileCard({
           </div>
         )}
 
-        {(profile.phone || profile.email || profile.website) && (
+        {(profile.phone || displayEmail || profile.website) && (
           <div className={`glass ${compact ? "p-3" : "p-5 sm:p-6"} rounded-2xl shadow-soft mb-6`}>
             {!compact && (
               <h2
@@ -213,9 +217,9 @@ export default function ProfileCard({
                   📞 {profile.phone}
                 </p>
               )}
-              {profile.email && (
+              {displayEmail && (
                 <p style={{ color: "var(--text)" }} className="truncate">
-                  ✉️ {profile.email}
+                  ✉️ {displayEmail}
                 </p>
               )}
               {profile.website && (

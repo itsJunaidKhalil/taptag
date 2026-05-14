@@ -98,7 +98,7 @@ export default function EditPage() {
         company: draft.company || null,
         about: draft.about || null,
         phone: draft.phone || null,
-        email: draft.email || null,
+        contact_email: draft.contact_email?.trim() || null,
         website: draft.website || null,
         profile_image_url: draft.profile_image_url || null,
         banner_image_url: draft.banner_image_url || null,
