@@ -35,7 +35,9 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 w-24 h-6 bg-black rounded-full" />
 
           {/* Inner scrollable content */}
-          <div className="h-full overflow-y-auto pt-8">{children}</div>
+          <div className="h-full min-w-0 overflow-y-auto overflow-x-hidden pt-8">
+            {children}
+          </div>
         </div>
       </div>
     </div>
