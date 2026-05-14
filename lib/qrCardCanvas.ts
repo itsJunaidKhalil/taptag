@@ -164,7 +164,7 @@ function drawImageContainRounded(
   ctx.drawImage(img, 0, 0, iw, ih, dx, dy, dw, dh);
   ctx.restore();
 
-  ctx.strokeStyle = "rgba(255,255,255,0.95)";
+  ctx.strokeStyle = "rgba(15,23,42,0.12)";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.roundRect(cx - half, cy - half, outer, outer, cornerR);
@@ -198,11 +198,12 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
   return lines.slice(0, 3);
 }
 
+/** Outer ring: light neutral frame on white for a clean print/share look. */
 function drawGradientFrame(ctx: CanvasRenderingContext2D) {
   const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#4A3AFF");
-  g.addColorStop(0.45, "#7c3aed");
-  g.addColorStop(1, "#00C4B4");
+  g.addColorStop(0, "#e8ecf4");
+  g.addColorStop(0.5, "#f1f5f9");
+  g.addColorStop(1, "#e2e8f0");
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.roundRect(0, 0, W, H, 36);
@@ -211,9 +212,9 @@ function drawGradientFrame(ctx: CanvasRenderingContext2D) {
 }
 
 /**
- * Renders a high-resolution branded “digital card” PNG: TapTag gradient frame,
- * optional banner only in a short top header band (logos + overlapping avatar),
- * solid gradient body for name/email, optional company logo tile, QR panel.
+ * Renders a high-resolution branded “digital card” PNG: light frame, optional
+ * banner in a short top header band (logos + overlapping avatar), white body
+ * for name/email, optional company logo tile, QR panel.
  */
 export async function renderDigitalQrCardPng(
   profile: QrCardBrandingProfile,
@@ -241,12 +242,8 @@ export async function renderDigitalQrCardPng(
   ctx.roundRect(ix, iy, iw, ih, INNER_R);
   ctx.clip();
 
-  // Body: full-card gradient (name / email / QR zone sit on this).
-  const g2 = ctx.createLinearGradient(ix, iy, ix + iw, iy + ih);
-  g2.addColorStop(0, "#312e81");
-  g2.addColorStop(0.45, "#4c1d95");
-  g2.addColorStop(1, "#134e4a");
-  ctx.fillStyle = g2;
+  // Body: clean white (name / email / QR zone sit on this).
+  ctx.fillStyle = "#ffffff";
   ctx.fillRect(ix, iy, iw, ih);
 
   const banner = await loadImageCors(profile.banner_image_url);
@@ -258,14 +255,14 @@ export async function renderDigitalQrCardPng(
     drawImageCover(ctx, banner, ix, iy, iw, headerBandH, "top");
     ctx.restore();
 
-    ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
+    ctx.fillStyle = "rgba(15, 23, 42, 0.22)";
     ctx.fillRect(ix, iy, iw, headerBandH);
 
-    // Blend band into the gradient body so the cut is not a hard line.
+    // Blend banner into white body.
     const fade = ctx.createLinearGradient(0, iy + headerBandH - 120, 0, iy + headerBandH + 100);
-    fade.addColorStop(0, "rgba(15, 23, 42, 0)");
-    fade.addColorStop(0.55, "rgba(15, 23, 42, 0.35)");
-    fade.addColorStop(1, "rgba(15, 23, 42, 0.85)");
+    fade.addColorStop(0, "rgba(255, 255, 255, 0)");
+    fade.addColorStop(0.45, "rgba(255, 255, 255, 0.55)");
+    fade.addColorStop(1, "rgba(255, 255, 255, 1)");
     ctx.fillStyle = fade;
     ctx.fillRect(ix, iy + headerBandH - 120, iw, 220);
   }
@@ -313,8 +310,8 @@ export async function renderDigitalQrCardPng(
     drawImageCover(ctx, photo, cx - avatarR, avatarY - avatarR, avatarR * 2, avatarR * 2, "center");
   } else {
     const g3 = ctx.createRadialGradient(cx - 40, avatarY - 40, 0, cx, avatarY, avatarR);
-    g3.addColorStop(0, "#a78bfa");
-    g3.addColorStop(1, "#4c1d95");
+    g3.addColorStop(0, "#eef2ff");
+    g3.addColorStop(1, "#c7d2fe");
     ctx.fillStyle = g3;
     ctx.fillRect(cx - avatarR, avatarY - avatarR, avatarR * 2, avatarR * 2);
     ctx.fillStyle = "rgba(255,255,255,0.95)";
@@ -325,8 +322,8 @@ export async function renderDigitalQrCardPng(
   }
   ctx.restore();
 
-  ctx.strokeStyle = "rgba(255,255,255,0.95)";
-  ctx.lineWidth = 7;
+  ctx.strokeStyle = "rgba(15,23,42,0.1)";
+  ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.arc(cx, avatarY, avatarR + 2, 0, Math.PI * 2);
   ctx.stroke();
@@ -345,10 +342,10 @@ export async function renderDigitalQrCardPng(
 
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "rgba(0,0,0,0.45)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 2;
+  ctx.fillStyle = "#0f172a";
+  ctx.shadowColor = "rgba(15,23,42,0.08)";
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetY = 1;
   ctx.font = "bold 48px system-ui, -apple-system, Segoe UI, sans-serif";
   const nameLines = wrapLines(ctx, displayName, iw - pad * 4);
   let ty = avatarY + avatarR + 32;
@@ -360,7 +357,7 @@ export async function renderDigitalQrCardPng(
   ctx.shadowOffsetY = 0;
 
   ctx.font = "26px system-ui, -apple-system, Segoe UI, sans-serif";
-  ctx.fillStyle = "rgba(226,232,240,0.95)";
+  ctx.fillStyle = "#475569";
   if (titleLine) {
     ctx.fillText(titleLine, cx, ty + 6);
     ty += 36;
@@ -376,7 +373,7 @@ export async function renderDigitalQrCardPng(
   const cardEmail = (profile.contact_email || "").trim();
   if (cardEmail) {
     ctx.font = "22px ui-monospace, SFMono-Regular, Menlo, monospace";
-    ctx.fillStyle = "rgba(226,232,240,0.88)";
+    ctx.fillStyle = "#334155";
     const emLines = wrapLines(ctx, cardEmail, iw - pad * 4);
     for (const el of emLines) {
       ctx.fillText(el, cx, ty + 14);
@@ -392,14 +389,19 @@ export async function renderDigitalQrCardPng(
   const py = H - FRAME - panelH - 28;
 
   ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "rgba(15,23,42,0.28)";
-  ctx.shadowBlur = 36;
-  ctx.shadowOffsetY = 14;
+  ctx.shadowColor = "rgba(15,23,42,0.12)";
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 10;
   ctx.beginPath();
   ctx.roundRect(px, py, panelW, panelH, 32);
   ctx.fill();
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
+  ctx.strokeStyle = "rgba(15,23,42,0.08)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(px, py, panelW, panelH, 32);
+  ctx.stroke();
 
   const qrTarget = Math.min(640, panelW - 72);
   const qrDataUrl = await QRCode.toDataURL(profilePublicUrl, {
