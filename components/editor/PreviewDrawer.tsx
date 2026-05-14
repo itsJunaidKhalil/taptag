@@ -21,8 +21,11 @@ export default function PreviewDrawer() {
   return (
     <>
       {/* Desktop drawer */}
+      {/* lg: bottom offset reserves vertical space for the global footer so the
+          phone mockup does not overlap Privacy / Cookie links (layout Footer is
+          after page content but sits under this fixed panel without z-index). */}
       <aside
-        className={`hidden lg:flex fixed top-16 right-0 bottom-0 z-30 transition-all duration-300 ${
+        className={`hidden lg:flex fixed top-16 right-0 z-30 bottom-0 lg:bottom-72 transition-all duration-300 ${
           collapsed ? "w-12" : "w-[400px]"
         }`}
       >

@@ -170,7 +170,7 @@ export default function EditPage() {
       <EmailVerificationBanner />
       <Navbar />
 
-      <div className="lg:pr-[400px] transition-all">
+      <div className="lg:pr-[400px] transition-all pb-10 lg:pb-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
           <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
             <div>
