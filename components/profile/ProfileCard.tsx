@@ -16,6 +16,7 @@ export interface ProfileCardData {
   website: string | null;
   profile_image_url: string | null;
   banner_image_url: string | null;
+  company_logo_url?: string | null;
   theme: string | null;
 }
 

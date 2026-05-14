@@ -14,6 +14,7 @@ export interface ProfileDraft {
   website: string;
   profile_image_url: string;
   banner_image_url: string;
+  company_logo_url: string;
   theme: ThemeName;
 }
 
@@ -43,6 +44,7 @@ const emptyDraft: ProfileDraft = {
   website: "",
   profile_image_url: "",
   banner_image_url: "",
+  company_logo_url: "",
   theme: "default",
 };
 
@@ -58,6 +60,7 @@ function profileToDraft(profile: any): ProfileDraft {
     website: profile.website || "",
     profile_image_url: profile.profile_image_url || "",
     banner_image_url: profile.banner_image_url || "",
+    company_logo_url: profile.company_logo_url || "",
     theme: (profile.theme as ThemeName) || "default",
   };
 }
@@ -117,6 +120,7 @@ export function draftToProfileCard(draft: ProfileDraft, userId: string | null): 
     website: draft.website || null,
     profile_image_url: draft.profile_image_url || null,
     banner_image_url: draft.banner_image_url || null,
+    company_logo_url: draft.company_logo_url || null,
     theme: draft.theme || null,
   };
 }

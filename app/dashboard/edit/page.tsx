@@ -102,6 +102,7 @@ export default function EditPage() {
         website: draft.website || null,
         profile_image_url: draft.profile_image_url || null,
         banner_image_url: draft.banner_image_url || null,
+        company_logo_url: draft.company_logo_url || null,
         theme: draft.theme,
       };
       const res = await fetch("/api/profile/update", {

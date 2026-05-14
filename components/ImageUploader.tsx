@@ -10,6 +10,8 @@ interface ImageUploaderProps {
   currentUrl?: string | null;
   onUploadComplete: (url: string) => void;
   label: string;
+  /** When set to company_logo, file is stored as company-logo-{userId}.ext in the bucket (banners only). */
+  uploadSlot?: "default" | "company_logo";
 }
 
 export default function ImageUploader({
@@ -18,11 +20,12 @@ export default function ImageUploader({
   currentUrl,
   onUploadComplete,
   label,
+  uploadSlot = "default",
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const [error, setError] = useState<string | null>(null);
-  const inputId = `${bucket}-${userId}-upload`;
+  const inputId = `${bucket}-${uploadSlot}-${userId}-upload`;
 
   const withCacheBust = (url: string) => {
     const separator = url.includes("?") ? "&" : "?";
@@ -68,6 +71,9 @@ export default function ImageUploader({
         formData.append("file", file);
         formData.append("bucket", bucket);
         formData.append("userId", userId);
+        if (uploadSlot !== "default") {
+          formData.append("uploadSlot", uploadSlot);
+        }
 
         const response = await fetch("/api/upload", {
           method: "POST",
@@ -93,13 +99,23 @@ export default function ImageUploader({
         console.warn("API upload failed, trying direct upload:", apiError);
         
         const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-        const fileName = `${userId}.${fileExt}`;
+        const fileName =
+          uploadSlot === "company_logo"
+            ? `company-logo-${userId}.${fileExt}`
+            : `${userId}.${fileExt}`;
         const filePath = `${fileName}`;
 
         // Remove old file if exists (ignore errors if file doesn't exist)
         await supabase.storage.from(bucket).remove([fileName]).catch(() => {
           // Ignore errors when removing non-existent files
         });
+        if (uploadSlot === "company_logo") {
+          const exts = ["jpg", "jpeg", "png", "webp", "gif"];
+          const stale = exts
+            .filter((e) => e !== fileExt)
+            .map((e) => `company-logo-${userId}.${e}`);
+          await supabase.storage.from(bucket).remove(stale).catch(() => {});
+        }
 
         // Upload new file
         const { error: uploadError } = await supabase.storage
