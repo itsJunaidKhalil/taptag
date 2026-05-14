@@ -44,8 +44,11 @@ export default function Footer() {
   const year = new Date().getFullYear();
   const isCardEditor = pathname.startsWith("/dashboard/edit");
 
+  // Editor route: inset footer content from the fixed preview column only.
+  // Do not raise z-index here — that painted the full-width footer over the
+  // preview and clipped the phone mockup horizontally.
   const footerSurface = isCardEditor
-    ? "relative z-40 lg:pr-[400px] bg-white/95 dark:bg-gray-950/95"
+    ? "lg:pr-[400px] bg-white/95 dark:bg-gray-950/95"
     : "bg-white/60 dark:bg-gray-900/60";
 
   return (

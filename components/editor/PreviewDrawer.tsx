@@ -25,8 +25,8 @@ export default function PreviewDrawer() {
           phone mockup does not overlap Privacy / Cookie links (layout Footer is
           after page content but sits under this fixed panel without z-index). */}
       <aside
-        className={`hidden lg:flex fixed top-16 right-0 z-30 bottom-0 lg:bottom-72 transition-all duration-300 ${
-          collapsed ? "w-12" : "w-[400px]"
+        className={`hidden lg:flex fixed top-16 right-0 z-50 flex-col bottom-0 lg:bottom-72 transition-all duration-300 overflow-y-auto overflow-x-visible overscroll-y-contain ${
+          collapsed ? "w-12 min-w-12 overflow-visible" : "w-[400px] min-w-[400px]"
         }`}
       >
         <button
@@ -47,7 +47,7 @@ export default function PreviewDrawer() {
         </button>
 
         {!collapsed && (
-          <div className="w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-soft-lg flex flex-col items-center pt-8 pb-6 px-6 overflow-y-auto">
+          <div className="w-full flex-1 min-h-0 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-soft-lg flex flex-col items-center pt-8 pb-6 px-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">
               Live preview
             </p>
