@@ -212,8 +212,8 @@ function drawGradientFrame(ctx: CanvasRenderingContext2D) {
 
 /**
  * Renders a high-resolution branded “digital card” PNG: TapTag gradient frame,
- * optional banner as company-style background, optional company logo, avatar,
- * name, role/company text, QR, and footer URL for marketing.
+ * optional banner only in a short top header band (logos + overlapping avatar),
+ * solid gradient body for name/email, optional company logo tile, QR panel.
  */
 export async function renderDigitalQrCardPng(
   profile: QrCardBrandingProfile,
@@ -232,23 +232,42 @@ export async function renderDigitalQrCardPng(
 
   drawGradientFrame(ctx);
 
+  // Header band height: wide strip only — banner is painted here so artwork is
+  // not stretched across the full 1920px canvas (avoids blown-up logos).
+  const headerBandH = Math.min(500, Math.round(iw * 0.38));
+
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(ix, iy, iw, ih, INNER_R);
   ctx.clip();
 
+  // Body: full-card gradient (name / email / QR zone sit on this).
+  const g2 = ctx.createLinearGradient(ix, iy, ix + iw, iy + ih);
+  g2.addColorStop(0, "#312e81");
+  g2.addColorStop(0.45, "#4c1d95");
+  g2.addColorStop(1, "#134e4a");
+  ctx.fillStyle = g2;
+  ctx.fillRect(ix, iy, iw, ih);
+
   const banner = await loadImageCors(profile.banner_image_url);
   if (banner) {
-    drawImageCover(ctx, banner, ix, iy, iw, ih, "top");
-    ctx.fillStyle = "rgba(15, 23, 42, 0.55)";
-    ctx.fillRect(ix, iy, iw, ih);
-  } else {
-    const g2 = ctx.createLinearGradient(ix, iy, ix + iw, iy + ih);
-    g2.addColorStop(0, "#312e81");
-    g2.addColorStop(0.5, "#4c1d95");
-    g2.addColorStop(1, "#134e4a");
-    ctx.fillStyle = g2;
-    ctx.fillRect(ix, iy, iw, ih);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ix, iy, iw, headerBandH);
+    ctx.clip();
+    drawImageCover(ctx, banner, ix, iy, iw, headerBandH, "top");
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
+    ctx.fillRect(ix, iy, iw, headerBandH);
+
+    // Blend band into the gradient body so the cut is not a hard line.
+    const fade = ctx.createLinearGradient(0, iy + headerBandH - 120, 0, iy + headerBandH + 100);
+    fade.addColorStop(0, "rgba(15, 23, 42, 0)");
+    fade.addColorStop(0.55, "rgba(15, 23, 42, 0.35)");
+    fade.addColorStop(1, "rgba(15, 23, 42, 0.85)");
+    ctx.fillStyle = fade;
+    ctx.fillRect(ix, iy + headerBandH - 120, iw, 220);
   }
 
   ctx.restore();
@@ -280,8 +299,9 @@ export async function renderDigitalQrCardPng(
   }
 
   const cx = ix + iw / 2;
-  const avatarY = iy + 200;
   const avatarR = 108;
+  // Avatar straddles bottom of header band (LinkedIn-style) so it reads with logos, not mid-stretch.
+  const avatarY = iy + headerBandH - avatarR * 0.42;
 
   const photo = await loadImageCors(profile.profile_image_url);
   ctx.save();
