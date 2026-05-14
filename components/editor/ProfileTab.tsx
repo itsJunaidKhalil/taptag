@@ -130,6 +130,23 @@ export default function ProfileTab({ userId }: ProfileTabProps) {
           />
         </div>
 
+        <div className="rounded-2xl border border-gray-200/60 dark:border-gray-700/60 bg-white/40 dark:bg-gray-900/30 p-4 sm:p-5">
+          <ImageUploader
+            userId={userId}
+            bucket="banners"
+            uploadSlot="company_logo"
+            currentUrl={draft.company_logo_url || undefined}
+            onUploadComplete={(url) => updateField("company_logo_url", url)}
+            label="Company logo (QR card)"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
+            Optional square logo for your downloadable digital card. Your{" "}
+            <strong className="font-medium text-gray-700 dark:text-gray-300">banner</strong>{" "}
+            is used as the card background; this logo appears in the corner for co‑branded
+            marketing (teams and employers).
+          </p>
+        </div>
+
         <Field label="Username" required>
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400 text-sm select-none">

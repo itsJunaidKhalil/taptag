@@ -194,7 +194,18 @@ export default function DashboardPage() {
               </div>
 
               <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
-                <QRCode url={profileUrl} size={200} />
+                <QRCode
+                  url={profileUrl}
+                  size={200}
+                  cardProfile={{
+                    full_name: profile.full_name,
+                    company: profile.company,
+                    username: profile.username,
+                    profile_image_url: profile.profile_image_url,
+                    banner_image_url: profile.banner_image_url,
+                    company_logo_url: profile.company_logo_url ?? null,
+                  }}
+                />
               </div>
             </div>
           ) : (

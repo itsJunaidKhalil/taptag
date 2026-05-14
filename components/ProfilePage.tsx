@@ -46,6 +46,7 @@ interface Profile {
   website: string | null;
   profile_image_url: string | null;
   banner_image_url: string | null;
+  company_logo_url?: string | null;
   theme: string | null;
 }
 
@@ -720,6 +721,14 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                     size={180}
                     showTitle
                     showDownload
+                    cardProfile={{
+                      full_name: profile.full_name,
+                      company: profile.company,
+                      username: profile.username,
+                      profile_image_url: profile.profile_image_url,
+                      banner_image_url: profile.banner_image_url,
+                      company_logo_url: profile.company_logo_url ?? null,
+                    }}
                   />
                 </div>
               ) : (
