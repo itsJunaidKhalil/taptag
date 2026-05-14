@@ -204,10 +204,7 @@ export default function DashboardPage() {
                     profile_image_url: profile.profile_image_url,
                     banner_image_url: profile.banner_image_url,
                     company_logo_url: profile.company_logo_url ?? null,
-<<<<<<< HEAD
                     contact_email: profile.contact_email?.trim() || null,
-=======
->>>>>>> origin/main
                   }}
                 />
               </div>
