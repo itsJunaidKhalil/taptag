@@ -10,7 +10,7 @@ export interface ProfileDraft {
   company: string;
   about: string;
   phone: string;
-  email: string;
+  contact_email: string;
   website: string;
   profile_image_url: string;
   banner_image_url: string;
@@ -20,6 +20,8 @@ export interface ProfileDraft {
 
 interface EditorState {
   userId: string | null;
+  /** Mirrors auth / profiles.email — used only as fallback for public contact display. */
+  accountEmail: string | null;
   draft: ProfileDraft;
   saved: ProfileDraft;
   links: ProfileCardLink[];
@@ -40,7 +42,7 @@ const emptyDraft: ProfileDraft = {
   company: "",
   about: "",
   phone: "",
-  email: "",
+  contact_email: "",
   website: "",
   profile_image_url: "",
   banner_image_url: "",
@@ -56,7 +58,7 @@ function profileToDraft(profile: any): ProfileDraft {
     company: profile.company || "",
     about: profile.about || "",
     phone: profile.phone || "",
-    email: profile.email || "",
+    contact_email: profile.contact_email || profile.email || "",
     website: profile.website || "",
     profile_image_url: profile.profile_image_url || "",
     banner_image_url: profile.banner_image_url || "",
@@ -67,6 +69,7 @@ function profileToDraft(profile: any): ProfileDraft {
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   userId: null,
+  accountEmail: null,
   draft: { ...emptyDraft },
   saved: { ...emptyDraft },
   links: [],
@@ -78,6 +81,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const d = profileToDraft(profile);
     set({
       userId,
+      accountEmail: profile?.email || null,
       draft: d,
       saved: d,
       links: links || [],
@@ -109,6 +113,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 }));
 
 export function draftToProfileCard(draft: ProfileDraft, userId: string | null): ProfileCardData {
+  const accountEmail = useEditorStore.getState().accountEmail || null;
   return {
     id: userId || undefined,
     username: draft.username || null,
@@ -116,7 +121,8 @@ export function draftToProfileCard(draft: ProfileDraft, userId: string | null): 
     company: draft.company || null,
     about: draft.about || null,
     phone: draft.phone || null,
-    email: draft.email || null,
+    contact_email: draft.contact_email || null,
+    email: accountEmail,
     website: draft.website || null,
     profile_image_url: draft.profile_image_url || null,
     banner_image_url: draft.banner_image_url || null,

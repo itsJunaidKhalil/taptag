@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 import { generateVCF } from "@/utils/vcf";
+import { publicContactEmail } from "@/lib/publicContact";
 
 export async function GET(
   req: NextRequest,
@@ -14,6 +15,7 @@ export async function GET(
       .from("profiles")
       .select("*")
       .eq("username", username)
+      .is("deleted_at", null)
       .single();
 
     if (error || !profile) {
@@ -24,7 +26,7 @@ export async function GET(
       full_name: profile.full_name,
       company: profile.company,
       phone: profile.phone,
-      email: profile.email,
+      email: publicContactEmail(profile),
       username: profile.username || "",
       website: profile.website,
     });

@@ -36,6 +36,7 @@ export default function RegisterPage() {
         const { error: profileError } = await supabase.from("profiles").insert({
           id: data.user.id,
           email: data.user.email,
+          contact_email: data.user.email,
         });
 
         if (profileError) {

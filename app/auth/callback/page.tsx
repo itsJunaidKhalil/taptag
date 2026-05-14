@@ -74,6 +74,7 @@ export default function AuthCallback() {
               const { error: profileCreateError } = await supabase.from("profiles").insert({
                 id: data.user.id,
                 email: data.user.email,
+                contact_email: data.user.email,
               });
 
               if (profileCreateError) {

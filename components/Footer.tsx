@@ -42,10 +42,20 @@ export default function Footer() {
   }
 
   const year = new Date().getFullYear();
+  const isCardEditor = pathname.startsWith("/dashboard/edit");
+
+  // Editor route: inset footer content from the fixed preview column only.
+  // Do not raise z-index here — that painted the full-width footer over the
+  // preview and clipped the phone mockup horizontally.
+  const footerSurface = isCardEditor
+    ? "lg:pr-[400px] bg-white/95 dark:bg-gray-950/95"
+    : "bg-white/60 dark:bg-gray-900/60";
 
   return (
     <>
-      <footer className="mt-16 sm:mt-20 border-t border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
+      <footer
+        className={`mt-16 sm:mt-20 border-t border-gray-200/60 dark:border-gray-800/60 backdrop-blur-sm ${footerSurface}`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
           {/* Layout swaps from centered-stack on mobile to two-column on
               tablets+ so the brand block and link nav sit side-by-side at

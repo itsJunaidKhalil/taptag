@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ThemeName } from "@/utils/themes";
 import { getPlatform } from "@/lib/platforms";
 import PlatformIcon from "@/components/PlatformIcon";
+import { publicContactEmail } from "@/lib/publicContact";
 
 export interface ProfileCardData {
   id?: string;
@@ -13,6 +14,8 @@ export interface ProfileCardData {
   about: string | null;
   phone: string | null;
   email: string | null;
+  /** When set, shown on the card instead of `email` (login mirror). */
+  contact_email?: string | null;
   website: string | null;
   profile_image_url: string | null;
   banner_image_url: string | null;
@@ -48,11 +51,12 @@ export default function ProfileCard({
   embedded = false,
 }: ProfileCardProps) {
   const activeTheme: string = theme || profile.theme || "default";
+  const displayEmail = publicContactEmail(profile);
 
   return (
     <div
       data-theme={activeTheme}
-      className="relative w-full"
+      className={`relative w-full min-w-0 ${compact ? "overflow-x-hidden break-words" : ""}`}
       style={
         embedded
           ? { color: "var(--text)" }
@@ -108,7 +112,7 @@ export default function ProfileCard({
 
           <h1
             className={`${
-              compact ? "text-xl" : "text-3xl sm:text-4xl"
+              compact ? "text-xl break-words" : "text-3xl sm:text-4xl"
             } font-heading font-bold mt-4 text-center`}
             style={{ color: "var(--text)" }}
           >
@@ -137,7 +141,7 @@ export default function ProfileCard({
           {profile.about && (
             <p
               className={`${
-                compact ? "text-xs" : "text-base sm:text-lg"
+                compact ? "text-xs break-words" : "text-base sm:text-lg"
               } text-center mt-3 max-w-md leading-relaxed`}
               style={{ color: "var(--text)", opacity: 0.9 }}
             >
@@ -165,7 +169,7 @@ export default function ProfileCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => onLinkClick?.(link.id)}
-                  className={`flex items-center gap-3 ${
+                  className={`flex min-w-0 items-center gap-3 ${
                     compact ? "px-3 py-2" : "px-4 py-3"
                   } glass border border-gray-200/50 dark:border-gray-700/50 rounded-2xl hover:border-primary-500/50 transition-all hover:scale-[1.01]`}
                 >
@@ -197,7 +201,7 @@ export default function ProfileCard({
           </div>
         )}
 
-        {(profile.phone || profile.email || profile.website) && (
+        {(profile.phone || displayEmail || profile.website) && (
           <div className={`glass ${compact ? "p-3" : "p-5 sm:p-6"} rounded-2xl shadow-soft mb-6`}>
             {!compact && (
               <h2
@@ -213,9 +217,9 @@ export default function ProfileCard({
                   📞 {profile.phone}
                 </p>
               )}
-              {profile.email && (
+              {displayEmail && (
                 <p style={{ color: "var(--text)" }} className="truncate">
-                  ✉️ {profile.email}
+                  ✉️ {displayEmail}
                 </p>
               )}
               {profile.website && (
