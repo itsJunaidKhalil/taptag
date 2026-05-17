@@ -12,6 +12,7 @@ import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import EmailVerificationBanner from "@/components/account/EmailVerificationBanner";
 import AccountRecoveryBanner from "@/components/account/AccountRecoveryBanner";
+import LinkAnalyticsSection from "@/components/dashboard/LinkAnalyticsSection";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -148,6 +149,8 @@ export default function DashboardPage() {
             </p>
           </Link>
         </div>
+
+        {profile?.username && <LinkAnalyticsSection />}
 
         <div className="glass p-6 sm:p-8 rounded-3xl shadow-soft-lg">
           <h2 className="text-2xl font-heading font-semibold mb-6 text-gray-900 dark:text-white">Your Public Profile</h2>

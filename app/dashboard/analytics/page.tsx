@@ -6,8 +6,12 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Sparkline from "@/components/charts/Sparkline";
 import AnalyticsTrendChart from "@/components/charts/AnalyticsTrendChart";
+import LinkDrilldownModal from "@/components/analytics/LinkDrilldownModal";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonCard, Skeleton } from "@/components/ui/Skeleton";
+import PlatformIcon from "@/components/PlatformIcon";
+import { getPlatform } from "@/lib/platforms";
+import type { LinkWithStats } from "@/lib/analytics/link-stats";
 import {
   ANALYTICS_DASHBOARD_DAYS,
   ActivityRow,
@@ -102,6 +106,8 @@ export default function AnalyticsPage() {
   const [user, setUser] = useState<any>(null);
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [daily, setDaily] = useState<DailyRow[]>([]);
+  const [linkStats, setLinkStats] = useState<LinkWithStats[]>([]);
+  const [drilldownLink, setDrilldownLink] = useState<LinkWithStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -112,8 +118,25 @@ export default function AnalyticsPage() {
       }
       setUser(user);
       loadAnalytics(user.id);
+      loadLinkStats();
     });
   }, [router]);
+
+  const loadLinkStats = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (!token) return;
+      const res = await fetch("/api/dashboard/link-analytics", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      setLinkStats(json.links ?? []);
+    } catch {
+      /* optional */
+    }
+  };
 
   const loadAnalytics = async (userId: string) => {
     try {
@@ -143,8 +166,8 @@ export default function AnalyticsPage() {
         setDaily(dailyRes.data as DailyRow[]);
       }
 
-      if (!eventsRes.error && eventsRes.data?.length) {
-        setActivity(eventsRes.data.map(mapEventToActivity));
+      if (!eventsRes.error) {
+        setActivity((eventsRes.data ?? []).map(mapEventToActivity));
         return;
       }
 
@@ -290,6 +313,47 @@ export default function AnalyticsPage() {
               />
             </div>
 
+            {linkStats.length > 0 && (
+              <div className="glass p-4 sm:p-6 rounded-3xl shadow-soft-lg mb-6 sm:mb-8">
+                <h2 className="text-lg sm:text-xl font-heading font-semibold mb-4">
+                  Top links
+                </h2>
+                <ul className="space-y-2">
+                  {linkStats
+                    .filter((l) => l.clicksThisWeek > 0)
+                    .slice(0, 8)
+                    .map((link) => {
+                      const platform = getPlatform(link.platform);
+                      return (
+                        <li key={link.id}>
+                          <button
+                            type="button"
+                            onClick={() => setDrilldownLink(link)}
+                            className="w-full flex items-center gap-3 p-3 rounded-2xl border border-gray-200/70 dark:border-gray-700/70 hover:bg-white/60 dark:hover:bg-gray-800/40 transition-colors text-left"
+                          >
+                            <PlatformIcon platform={link.platform} className="w-8 h-8 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                {link.title || platform?.name || link.platform}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {link.clicksThisWeek} click{link.clicksThisWeek === 1 ? "" : "s"} ·
+                                Tap for details
+                              </p>
+                            </div>
+                          </button>
+                        </li>
+                      );
+                    })}
+                </ul>
+                {linkStats.every((l) => l.clicksThisWeek === 0) && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No link clicks this week yet.
+                  </p>
+                )}
+              </div>
+            )}
+
             {trendData.length > 0 && (
               <div className="glass p-4 sm:p-6 rounded-3xl shadow-soft-lg mb-6 sm:mb-8">
                 <h2 className="text-lg sm:text-xl font-heading font-semibold mb-1">
@@ -403,6 +467,12 @@ export default function AnalyticsPage() {
                 </table>
               </div>
             </div>
+            <LinkDrilldownModal
+              open={!!drilldownLink}
+              onOpenChange={(open) => !open && setDrilldownLink(null)}
+              link={drilldownLink}
+              profileId={user?.id ?? ""}
+            />
           </>
         )}
       </div>

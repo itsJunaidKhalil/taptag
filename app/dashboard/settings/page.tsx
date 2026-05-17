@@ -10,12 +10,14 @@ import EmailVerificationBanner from "@/components/account/EmailVerificationBanne
 import AccountRecoveryBanner from "@/components/account/AccountRecoveryBanner";
 import ExportDataSection from "@/components/account/ExportDataSection";
 import DeleteAccountSection from "@/components/account/DeleteAccountSection";
+import AnalyticsPreferencesSection from "@/components/settings/AnalyticsPreferencesSection";
 
 interface ProfileLite {
   id: string;
   username: string | null;
   deleted_at: string | null;
   scheduled_deletion_at: string | null;
+  show_public_view_count?: boolean | null;
 }
 
 export default function SettingsPage() {
@@ -101,6 +103,11 @@ export default function SettingsPage() {
                 </p>
               )}
             </section>
+
+            <AnalyticsPreferencesSection
+              profileId={profile?.id}
+              initialShowPublicViewCount={!!profile?.show_public_view_count}
+            />
 
             <ExportDataSection />
 

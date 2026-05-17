@@ -75,6 +75,8 @@ UPSTASH_REDIS_REST_TOKEN=
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 CRON_SECRET=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=TapTag <noreply@yourdomain.com>
 ```
 
 5. **Set up the database**
@@ -90,6 +92,7 @@ CRON_SECRET=
    supabase/migrations/20260515_contact_email.sql
    supabase/migrations/20260516_analytics_phase0.sql    # Analytics security + index
    supabase/migrations/20260517_analytics_phase2.sql    # Events + daily rollups
+   supabase/migrations/20260518_analytics_phase3.sql    # Public view-count badge
    ```
 
    See **`docs/ANALYTICS.md`** for the full analytics roadmap (Phases 0–4).

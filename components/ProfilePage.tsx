@@ -15,6 +15,7 @@ import ReportModal from "./ui/ReportModal";
 import EmptyState from "./ui/EmptyState";
 import { SkeletonLinkRow } from "./ui/Skeleton";
 import { trackAnalyticsEvent } from "@/lib/analytics/track-client";
+import PublicViewCountBadge from "@/components/profile/PublicViewCountBadge";
 import {
   DndContext,
   closestCenter,
@@ -50,6 +51,7 @@ interface Profile {
   banner_image_url: string | null;
   company_logo_url?: string | null;
   theme: string | null;
+  show_public_view_count?: boolean | null;
 }
 
 interface SocialLink {
@@ -416,6 +418,11 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
               >
                 @{profile.username}
               </p>
+            )}
+            {profile.show_public_view_count && profile.username && (
+              <div className="flex justify-center">
+                <PublicViewCountBadge username={profile.username} />
+              </div>
             )}
             {profile.company && (
               <p
