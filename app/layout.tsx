@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import Toaster from "@/components/ui/Toaster";
 import CookieConsentBanner from "@/components/ui/CookieConsentBanner";
+import PostHogProvider from "@/components/providers/PostHogProvider";
 import Footer from "@/components/Footer";
 import "./../styles/globals.css";
 
@@ -93,10 +94,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable}`}>
       <body className="font-body antialiased">
-        {children}
-        <Footer />
-        <CookieConsentBanner />
-        <Toaster />
+        <PostHogProvider>
+          {children}
+          <Footer />
+          <CookieConsentBanner />
+          <Toaster />
+        </PostHogProvider>
       </body>
     </html>
   );

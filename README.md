@@ -71,6 +71,10 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
 # Optional — strongly recommended on Vercel (distributed rate limiting)
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
+# Analytics Phase 1–2 (optional PostHog; required cron secret on Vercel)
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+CRON_SECRET=
 ```
 
 5. **Set up the database**
@@ -85,6 +89,7 @@ UPSTASH_REDIS_REST_TOKEN=
    supabase/migrations/20260514_qr_card_company_logo.sql
    supabase/migrations/20260515_contact_email.sql
    supabase/migrations/20260516_analytics_phase0.sql    # Analytics security + index
+   supabase/migrations/20260517_analytics_phase2.sql    # Events + daily rollups
    ```
 
    See **`docs/ANALYTICS.md`** for the full analytics roadmap (Phases 0–4).
@@ -140,6 +145,14 @@ UPSTASH_REDIS_REST_TOKEN=
    - `SELECT` policy so owners read only their own rows
 
    - Powers hardened `/api/analytics` (see `docs/ANALYTICS.md`)
+
+   **20260517 (Analytics Phase 2)** adds:
+
+   - `analytics_events` (append-only log with geo, device, UTM, visitor ids)
+   - `analytics_daily` (per-profile daily rollups)
+   - `rollup_analytics_daily` / `rollup_analytics_daily_range` functions
+   - Powers `/api/cron/analytics-rollup` (set `CRON_SECRET` on Vercel;
+     schedule in `vercel.json`)
 
    - Powers `/admin`, `/admin/users`, `/admin/users/[id]`,
      `/admin/reports`, `/api/admin/check`, `/api/admin/stats`,

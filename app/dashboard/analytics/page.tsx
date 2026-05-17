@@ -5,33 +5,37 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Sparkline from "@/components/charts/Sparkline";
+import AnalyticsTrendChart from "@/components/charts/AnalyticsTrendChart";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonCard, Skeleton } from "@/components/ui/Skeleton";
+import {
+  ANALYTICS_DASHBOARD_DAYS,
+  ActivityRow,
+  DailyRow,
+  buildSeriesFromDaily,
+  buildTrendChartData,
+  mapEventToActivity,
+  mapLegacyToActivity,
+  sumDaily,
+} from "@/lib/analytics/dashboard";
 
-interface AnalyticsRow {
-  id: string;
-  profile_id: string;
-  event_type: string;
-  platform: string | null;
-  referrer: string | null;
-  timestamp: string;
-}
+const DAYS_IN_WINDOW = ANALYTICS_DASHBOARD_DAYS;
 
-const DAYS_IN_WINDOW = 7;
-
-function bucketByDay(rows: AnalyticsRow[], days = DAYS_IN_WINDOW): number[] {
+function bucketActivityByDay(
+  rows: ActivityRow[],
+  eventType: string,
+  days = DAYS_IN_WINDOW,
+): number[] {
   const buckets: number[] = Array(days).fill(0);
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
+  now.setUTCHours(0, 0, 0, 0);
   for (const r of rows) {
+    if (r.event_type !== eventType) continue;
     const d = new Date(r.timestamp);
     if (isNaN(d.getTime())) continue;
-    const day = new Date(d);
-    day.setHours(0, 0, 0, 0);
+    const day = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
     const diff = Math.floor((now.getTime() - day.getTime()) / 86400000);
-    if (diff >= 0 && diff < days) {
-      buckets[days - 1 - diff] += 1;
-    }
+    if (diff >= 0 && diff < days) buckets[days - 1 - diff] += 1;
   }
   return buckets;
 }
@@ -54,6 +58,11 @@ function eventBadge(eventType: string) {
       return {
         label: "Share",
         className: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200",
+      };
+    case "vcf_download":
+      return {
+        label: "VCF",
+        className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
       };
     default:
       return {
@@ -81,10 +90,18 @@ function formatActivityTime(timestamp: string) {
   };
 }
 
+function displayPlatform(item: ActivityRow): string {
+  if (item.platform) return item.platform;
+  if (item.device_type === "tablet") return "tablet";
+  if (item.device_type) return item.device_type;
+  return "Unknown";
+}
+
 export default function AnalyticsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [analytics, setAnalytics] = useState<AnalyticsRow[]>([]);
+  const [activity, setActivity] = useState<ActivityRow[]>([]);
+  const [daily, setDaily] = useState<DailyRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,18 +117,47 @@ export default function AnalyticsPage() {
 
   const loadAnalytics = async (userId: string) => {
     try {
-      const sinceIso = new Date(
-        Date.now() - DAYS_IN_WINDOW * 86400000,
-      ).toISOString();
-      const { data, error } = await supabase
+      const sinceDate = new Date(Date.now() - DAYS_IN_WINDOW * 86400000)
+        .toISOString()
+        .slice(0, 10);
+      const sinceIso = new Date(Date.now() - DAYS_IN_WINDOW * 86400000).toISOString();
+
+      const [dailyRes, eventsRes] = await Promise.all([
+        supabase
+          .from("analytics_daily")
+          .select("*")
+          .eq("profile_id", userId)
+          .gte("date", sinceDate)
+          .order("date", { ascending: true }),
+        supabase
+          .from("analytics_events")
+          .select("id, event_type, device_type, referrer, created_at")
+          .eq("profile_id", userId)
+          .eq("is_bot", false)
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ]);
+
+      if (!dailyRes.error && dailyRes.data) {
+        setDaily(dailyRes.data as DailyRow[]);
+      }
+
+      if (!eventsRes.error && eventsRes.data?.length) {
+        setActivity(eventsRes.data.map(mapEventToActivity));
+        return;
+      }
+
+      const { data: legacy, error: legacyError } = await supabase
         .from("analytics")
         .select("*")
         .eq("profile_id", userId)
         .gte("timestamp", sinceIso)
         .order("timestamp", { ascending: false })
-        .limit(2000);
-      if (error) throw error;
-      setAnalytics(data || []);
+        .limit(100);
+
+      if (legacyError) throw legacyError;
+      setActivity((legacy || []).map(mapLegacyToActivity));
     } catch (error) {
       console.error("Error loading analytics:", error);
     } finally {
@@ -119,26 +165,66 @@ export default function AnalyticsPage() {
     }
   };
 
-  const { stats, series } = useMemo(() => {
-    const views = analytics.filter((a) => a.event_type === "profile_view");
-    const clicks = analytics.filter((a) => a.event_type === "link_click");
-    const mobile = analytics.filter((a) => a.platform === "mobile");
-    const desktop = analytics.filter((a) => a.platform === "desktop");
+  const { stats, series, trendData, hasData } = useMemo(() => {
+    const useDaily = daily.length > 0;
+    const totalViews = useDaily
+      ? sumDaily(daily, (r) => r.views)
+      : activity.filter((a) => a.event_type === "profile_view").length;
+    const totalClicks = useDaily
+      ? sumDaily(daily, (r) => r.link_clicks)
+      : activity.filter((a) => a.event_type === "link_click").length;
+    const mobileViews = useDaily
+      ? sumDaily(daily, (r) => r.mobile_views)
+      : activity.filter(
+          (a) =>
+            a.event_type === "profile_view" &&
+            (a.platform === "mobile" || a.device_type === "mobile" || a.device_type === "tablet"),
+        ).length;
+    const desktopViews = useDaily
+      ? sumDaily(daily, (r) => r.desktop_views)
+      : activity.filter(
+          (a) => a.event_type === "profile_view" && a.platform === "desktop",
+        ).length;
+
+    const hasData =
+      totalViews + totalClicks > 0 ||
+      activity.some((a) => a.event_type === "link_share" || a.event_type === "vcf_download");
+
     return {
-      stats: {
-        totalViews: views.length,
-        totalClicks: clicks.length,
-        mobileViews: mobile.length,
-        desktopViews: desktop.length,
-      },
-      series: {
-        views: bucketByDay(views),
-        clicks: bucketByDay(clicks),
-        mobile: bucketByDay(mobile),
-        desktop: bucketByDay(desktop),
-      },
+      hasData,
+      stats: { totalViews, totalClicks, mobileViews, desktopViews },
+      series: useDaily
+        ? {
+            views: buildSeriesFromDaily(daily, DAYS_IN_WINDOW, (r) => r.views),
+            clicks: buildSeriesFromDaily(daily, DAYS_IN_WINDOW, (r) => r.link_clicks),
+            mobile: buildSeriesFromDaily(daily, DAYS_IN_WINDOW, (r) => r.mobile_views),
+            desktop: buildSeriesFromDaily(daily, DAYS_IN_WINDOW, (r) => r.desktop_views),
+          }
+        : {
+            views: bucketActivityByDay(activity, "profile_view"),
+            clicks: bucketActivityByDay(activity, "link_click"),
+            mobile: bucketActivityByDay(
+              activity.filter(
+                (a) =>
+                  a.event_type === "profile_view" &&
+                  (a.platform === "mobile" ||
+                    a.device_type === "mobile" ||
+                    a.device_type === "tablet"),
+              ),
+              "profile_view",
+            ),
+            desktop: bucketActivityByDay(
+              activity.filter(
+                (a) =>
+                  a.event_type === "profile_view" &&
+                  (a.platform === "desktop" || a.device_type === "desktop"),
+              ),
+              "profile_view",
+            ),
+          },
+      trendData: useDaily ? buildTrendChartData(daily, DAYS_IN_WINDOW) : [],
     };
-  }, [analytics]);
+  }, [daily, activity]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
@@ -167,7 +253,7 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </>
-        ) : analytics.length === 0 ? (
+        ) : !hasData && activity.length === 0 ? (
           <EmptyState
             illustration="analytics"
             title="No data yet"
@@ -204,12 +290,24 @@ export default function AnalyticsPage() {
               />
             </div>
 
+            {trendData.length > 0 && (
+              <div className="glass p-4 sm:p-6 rounded-3xl shadow-soft-lg mb-6 sm:mb-8">
+                <h2 className="text-lg sm:text-xl font-heading font-semibold mb-1">
+                  Views &amp; clicks
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  Daily totals (UTC)
+                </p>
+                <AnalyticsTrendChart data={trendData} />
+              </div>
+            )}
+
             <div className="glass p-4 sm:p-6 rounded-3xl shadow-soft-lg">
               <h2 className="text-lg sm:text-xl font-heading font-semibold mb-4">
                 Recent Activity
               </h2>
               <ul className="md:hidden space-y-3">
-                {analytics.slice(0, 100).map((item) => {
+                {activity.map((item) => {
                   const badge = eventBadge(item.event_type);
                   const { date, time } = formatActivityTime(item.timestamp);
                   return (
@@ -233,7 +331,7 @@ export default function AnalyticsPage() {
                         <div>
                           <dt className="text-gray-500 dark:text-gray-400 font-medium">Platform</dt>
                           <dd className="mt-0.5 capitalize text-gray-900 dark:text-gray-100 font-medium">
-                            {item.platform || "Unknown"}
+                            {displayPlatform(item)}
                           </dd>
                         </div>
                         <div className="min-w-0">
@@ -270,7 +368,7 @@ export default function AnalyticsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {analytics.slice(0, 100).map((item) => {
+                    {activity.map((item) => {
                       const badge = eventBadge(item.event_type);
                       const { date, time } = formatActivityTime(item.timestamp);
                       return (
@@ -286,7 +384,7 @@ export default function AnalyticsPage() {
                             </span>
                           </td>
                           <td className="py-3 px-3 capitalize text-gray-800 dark:text-gray-200">
-                            {item.platform || "Unknown"}
+                            {displayPlatform(item)}
                           </td>
                           <td
                             className="py-3 px-3 text-gray-800 dark:text-gray-200 max-w-[280px] truncate"

@@ -157,10 +157,11 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
     }
   };
 
-  const handleLinkClick = async (_linkId: string) => {
+  const handleLinkClick = async (linkId: string) => {
     trackAnalyticsEvent({
       profile_id: profile.id,
       event_type: "link_click",
+      link_id: linkId,
     });
   };
 
@@ -656,6 +657,12 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 <a
                   href={`/api/vcf/${profile.username}`}
                   download
+                  onClick={() =>
+                    trackAnalyticsEvent({
+                      profile_id: profile.id,
+                      event_type: "vcf_download",
+                    })
+                  }
                   className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-base sm:text-lg font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-105"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
