@@ -67,7 +67,10 @@ npm install
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reorder
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reorder, /api/analytics
+# Optional — strongly recommended on Vercel (distributed rate limiting)
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
 5. **Set up the database**
@@ -79,7 +82,12 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
    supabase/migrations/20260510_tier1_overhaul.sql        # Tier 1
    supabase/migrations/20260511_account_lifecycle.sql     # GDPR soft-delete
    supabase/migrations/20260512_admin.sql                 # Admin dashboard
+   supabase/migrations/20260514_qr_card_company_logo.sql
+   supabase/migrations/20260515_contact_email.sql
+   supabase/migrations/20260516_analytics_phase0.sql    # Analytics security + index
    ```
+
+   See **`docs/ANALYTICS.md`** for the full analytics roadmap (Phases 0–4).
 
    All migrations are fully additive (use `if not exists` everywhere) —
    safe to run on production with zero downtime.
@@ -122,6 +130,16 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # required for /api/social/reo
        where id = (select id from auth.users
                     where lower(email) = lower('YOUR@EMAIL.COM'));
      ```
+
+   **20260516 (Analytics Phase 0)** adds:
+
+   - Composite index `idx_analytics_profile_timestamp` on
+     `(profile_id, timestamp DESC)` for fast dashboard queries
+   - Removes open `INSERT` on `analytics` — public tracking must go through
+     `POST /api/analytics` (service role + validation + rate limits)
+   - `SELECT` policy so owners read only their own rows
+
+   - Powers hardened `/api/analytics` (see `docs/ANALYTICS.md`)
 
    - Powers `/admin`, `/admin/users`, `/admin/users/[id]`,
      `/admin/reports`, `/api/admin/check`, `/api/admin/stats`,
@@ -229,10 +247,10 @@ create policy "Social links are viewable by everyone"
 on social_links for select
 using (true);
 
--- RLS Policies for analytics
-create policy "Anyone can insert analytics"
-on analytics for insert
-with check (true);
+-- RLS Policies for analytics (Phase 0: no public insert — use POST /api/analytics)
+create policy "Users can read own analytics"
+on analytics for select
+using (auth.uid() = profile_id);
 ```
 
 6. **Set up Supabase Storage**
