@@ -85,7 +85,8 @@ export default function PrivacyPage() {
               </li>
               <li>
                 Coarse device class (mobile vs desktop) and HTTP referrer
-                only when the visitor has accepted analytics cookies.
+                only when the visitor has allowed analytics (via the first-visit
+                cookie banner or cookie preferences).
               </li>
             </ul>
             <p className="muted">
@@ -101,15 +102,19 @@ export default function PrivacyPage() {
                 stored in <code>localStorage</code> so you stay signed in.
               </li>
               <li>
-                <strong>Analytics</strong>: a single preference flag
-                (<code>taptag-consent-v1</code>) that records your cookie
-                choice. Analytics events are only sent when this flag is set
-                to <em>accepted</em>.
+                <strong>Analytics</strong>: a preference flag stored as
+                <code>taptag-consent-v1</code> in <code>localStorage</code>.
+                Profile view and link-click events are sent only when you
+                choose <em>Essential cookies</em> (banner) or enable
+                Analytics in cookie preferences — both include analytics for
+                profile owners.
               </li>
               <li>
-                <strong>Marketing</strong>: not currently used. The cookie
-                preferences dialog lists this category for future
-                transparency only.
+                <strong>Marketing</strong>: reserved for optional product
+                updates and surveys. Enabled only if you choose{" "}
+                <em>Accept all</em> on the first-visit banner or turn on
+                Marketing in cookie preferences. Not used for third-party
+                advertising.
               </li>
             </ul>
           </Section>
@@ -150,8 +155,12 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Consent</strong> (Art. 6(1)(a)) — analytics and
-                marketing cookies, which are off by default and require an
-                affirmative opt-in via the cookie preferences dialog.
+                marketing. On your first visit we show a cookie banner with
+                two choices: <em>Essential cookies</em> (essential +
+                analytics) or <em>Accept all</em> (essential, analytics, and
+                marketing). Until you choose, analytics events are not sent.
+                You can change or withdraw consent anytime via cookie
+                preferences in the footer or on public profiles.
               </li>
               <li>
                 <strong>Legal obligation</strong> (Art. 6(1)(c)) — when we
@@ -250,9 +259,10 @@ export default function PrivacyPage() {
                 machine-readable and reusable.
               </li>
               <li>
-                <strong>Withdraw consent</strong> for analytics cookies via
-                the cookie preferences dialog in the site footer or on any
-                public profile.
+                <strong>Withdraw consent</strong> for analytics or marketing
+                via the cookie preferences dialog in the site footer or on any
+                public profile (use &ldquo;Reject all&rdquo; or turn off
+                individual categories and save).
               </li>
               <li>
                 <strong>Lodge a complaint</strong> with your local data

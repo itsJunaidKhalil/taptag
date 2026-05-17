@@ -14,7 +14,7 @@ import CookieConsentModal from "./ui/CookieConsentModal";
 import ReportModal from "./ui/ReportModal";
 import EmptyState from "./ui/EmptyState";
 import { SkeletonLinkRow } from "./ui/Skeleton";
-import { getConsent } from "@/lib/consent";
+import { trackAnalyticsEvent } from "@/lib/analytics/track-client";
 import {
   DndContext,
   closestCenter,
@@ -70,7 +70,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [loadingLinks, setLoadingLinks] = useState(true);
   const linksFetchedRef = useRef(false);
-  const trackedViewRef = useRef(false);
+  const profileViewTrackedRef = useRef(false);
   const [localTheme, setLocalTheme] = useState<ThemeName>((profile.theme as ThemeName) || "default");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -112,27 +112,24 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
     return () => clearInterval(interval);
   }, [fetchLinks, reorderMode]);
 
-  useEffect(() => {
-    if (trackedViewRef.current) return;
-    trackedViewRef.current = true;
-
-    const consent = getConsent();
-    if (!consent.analytics) return;
-
-    const platform = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? "mobile" : "desktop";
-    const referrer = document.referrer || "direct";
-
-    fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        profile_id: profile.id,
-        event_type: "profile_view",
-        platform,
-        referrer,
-      }),
-    }).catch(() => {});
+  const trackProfileView = useCallback(() => {
+    if (profileViewTrackedRef.current) return;
+    profileViewTrackedRef.current = true;
+    trackAnalyticsEvent({
+      profile_id: profile.id,
+      event_type: "profile_view",
+    });
   }, [profile.id]);
+
+  useEffect(() => {
+    trackProfileView();
+    const onConsentChanged = () => {
+      profileViewTrackedRef.current = false;
+      trackProfileView();
+    };
+    window.addEventListener("taptag-consent-changed", onConsentChanged);
+    return () => window.removeEventListener("taptag-consent-changed", onConsentChanged);
+  }, [trackProfileView]);
 
   const handleShare = async () => {
     const baseUrl =
@@ -160,23 +157,11 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
     }
   };
 
-  const handleLinkClick = async (linkId: string) => {
-    const consent = getConsent();
-    if (!consent.analytics) return;
-
-    const platform = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? "mobile" : "desktop";
-    const referrer = document.referrer || "direct";
-
-    fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        profile_id: profile.id,
-        event_type: "link_click",
-        platform,
-        referrer,
-      }),
-    }).catch(() => {});
+  const handleLinkClick = async (_linkId: string) => {
+    trackAnalyticsEvent({
+      profile_id: profile.id,
+      event_type: "link_click",
+    });
   };
 
   const theme = localTheme || profile.theme || "default";
@@ -541,22 +526,11 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                       linkId={link.id}
                       title={link.title}
                       onClick={() => handleLinkClick(link.id)}
-                      onShare={(url, platform) => {
-                        const consent = getConsent();
-                        if (!consent.analytics) return;
-                        const platformType = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent)
-                          ? "mobile"
-                          : "desktop";
-                        fetch("/api/analytics", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            profile_id: profile.id,
-                            event_type: "link_share",
-                            platform: platformType,
-                            link_platform: platform,
-                          }),
-                        }).catch(() => {});
+                      onShare={() => {
+                        trackAnalyticsEvent({
+                          profile_id: profile.id,
+                          event_type: "link_share",
+                        });
                       }}
                     />
                   ))

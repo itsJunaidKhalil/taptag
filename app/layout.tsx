@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import Toaster from "@/components/ui/Toaster";
+import CookieConsentBanner from "@/components/ui/CookieConsentBanner";
 import Footer from "@/components/Footer";
 import "./../styles/globals.css";
 
@@ -94,6 +95,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         {children}
         <Footer />
+        <CookieConsentBanner />
         <Toaster />
       </body>
     </html>

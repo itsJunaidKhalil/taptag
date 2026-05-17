@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { getConsent, saveConsent, ConsentSettings, defaultConsent } from "@/lib/consent";
+import {
+  consentAcceptAll,
+  defaultConsent,
+  getConsent,
+  saveConsent,
+  ConsentSettings,
+} from "@/lib/consent";
 
 interface CookieConsentModalProps {
   open: boolean;
@@ -22,14 +28,12 @@ export default function CookieConsentModal({ open, onOpenChange }: CookieConsent
   };
 
   const handleAcceptAll = () => {
-    const next: ConsentSettings = { essential: true, analytics: true, marketing: true };
-    saveConsent(next);
+    saveConsent(consentAcceptAll);
     onOpenChange(false);
   };
 
   const handleRejectAll = () => {
-    const next: ConsentSettings = { essential: true, analytics: false, marketing: false };
-    saveConsent(next);
+    saveConsent(defaultConsent);
     onOpenChange(false);
   };
 
@@ -38,7 +42,7 @@ export default function CookieConsentModal({ open, onOpenChange }: CookieConsent
       open={open}
       onOpenChange={onOpenChange}
       title="Cookie preferences"
-      description="Choose which cookies you're comfortable with. Essential cookies are required for the site to function."
+      description="Fine-tune your choices. On your first visit you can also use the site-wide banner: Essential cookies (includes analytics) or Accept all."
       footer={
         <>
           <button
