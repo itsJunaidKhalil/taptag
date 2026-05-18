@@ -6,6 +6,8 @@ import {
   formatUtmLabel,
 } from "@/lib/analytics/insights";
 import { ANALYTICS_DASHBOARD_DAYS } from "@/lib/analytics/dashboard";
+
+analytics/phase4-admin
 import { buildFunnelFromTotals } from "@/lib/analytics/funnel";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +17,10 @@ function formatCityLabel(city: string | null, country: string | null): string {
   return country ? `${city}, ${country}` : city;
 }
 
+
+export const dynamic = "force-dynamic";
+
+main
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) {
@@ -41,6 +47,8 @@ export async function GET(req: NextRequest) {
   );
 
   const days = ANALYTICS_DASHBOARD_DAYS;
+
+ analytics/phase4-admin
   const sinceDate = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
   const sinceIso = new Date(Date.now() - days * 86400000).toISOString();
 
@@ -70,11 +78,37 @@ export async function GET(req: NextRequest) {
 
   const referrers = aggregateLabelCounts(
     viewRows.map((r) => ({ label: r.referrer })),
+    
+  const sinceIso = new Date(Date.now() - days * 86400000).toISOString();
+
+  const { data: events, error } = await supabase
+    .from("analytics_events")
+    .select("referrer, utm_source, utm_medium, utm_campaign, country, device_type")
+    .eq("profile_id", user.id)
+    .eq("is_bot", false)
+    .eq("event_type", "profile_view")
+    .gte("created_at", sinceIso)
+    .limit(5000);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const rows = events ?? [];
+
+  const referrers = aggregateLabelCounts(
+    rows.map((r) => ({ label: r.referrer })),
+main
     formatReferrerLabel,
   );
 
   const utmMap = new Map<string, number>();
+analytics/phase4-admin
   for (const r of viewRows) {
+
+  for (const r of rows) {
+
+main
     const label = formatUtmLabel(r.utm_source, r.utm_medium, r.utm_campaign);
     if (label === "—") continue;
     utmMap.set(label, (utmMap.get(label) ?? 0) + 1);
@@ -85,6 +119,7 @@ export async function GET(req: NextRequest) {
     .slice(0, 8);
 
   const countries = aggregateLabelCounts(
+analytics/phase4-admin
     viewRows.map((r) => ({ label: r.country || "Unknown" })),
     (l) => l || "Unknown",
   );
@@ -124,4 +159,16 @@ export async function GET(req: NextRequest) {
     devices,
     funnel: buildFunnelFromTotals(funnelTotals),
   });
+
+    rows.map((r) => ({ label: r.country || "Unknown" })),
+    (l) => l || "Unknown",
+  );
+
+  const devices = aggregateLabelCounts(
+    rows.map((r) => ({ label: r.device_type || "unknown" })),
+    (l) => (l ? l.charAt(0).toUpperCase() + l.slice(1) : "Unknown"),
+  );
+
+  return NextResponse.json({ days, referrers, utm, countries, devices });
+main
 }

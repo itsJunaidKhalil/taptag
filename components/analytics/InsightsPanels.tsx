@@ -4,18 +4,24 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { BreakdownRow } from "@/lib/analytics/insights";
+analytics/phase4-admin
 import type { FunnelStep } from "@/lib/analytics/funnel";
 import AnalyticsFunnel from "@/components/analytics/AnalyticsFunnel";
 import CityHeatmap from "@/components/analytics/CityHeatmap";
+main
 
 interface InsightsData {
   days: number;
   referrers: BreakdownRow[];
   utm: BreakdownRow[];
   countries: BreakdownRow[];
+analytics/phase4-admin
   cities: BreakdownRow[];
   devices: BreakdownRow[];
   funnel: FunnelStep[];
+
+  devices: BreakdownRow[];
+main
 }
 
 function PanelSection({
@@ -80,6 +86,7 @@ export default function InsightsPanels() {
 
   if (loading) {
     return (
+analytics/phase4-admin
       <>
         <Skeleton className="h-48 w-full mb-6" rounded="3xl" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 sm:mb-8">
@@ -88,11 +95,19 @@ export default function InsightsPanels() {
           ))}
         </div>
       </>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 sm:mb-8">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-36" rounded="3xl" />
+        ))}
+      </div>
+main
     );
   }
 
   if (!data) return null;
 
+analytics/phase4-admin
   const hasTraffic =
     data.referrers.length +
       data.utm.length +
@@ -125,5 +140,25 @@ export default function InsightsPanels() {
         </div>
       )}
     </>
+
+  const hasAny =
+    data.referrers.length + data.utm.length + data.countries.length + data.devices.length > 0;
+  if (!hasAny) return null;
+
+  return (
+    <div className="mb-6 sm:mb-8">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold mb-4">Traffic insights</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <PanelSection
+          title="Top referrers"
+          rows={data.referrers}
+          empty="No referrer data yet."
+        />
+        <PanelSection title="UTM campaigns" rows={data.utm} empty="No UTM tags captured yet." />
+        <PanelSection title="Countries" rows={data.countries} empty="No geo data yet." />
+        <PanelSection title="Devices" rows={data.devices} empty="No device data yet." />
+      </div>
+    </div>
+main
   );
 }
