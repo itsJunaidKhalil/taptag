@@ -22,6 +22,7 @@ interface Stats {
   };
   reports: { open: number; resolved: number };
   revenue: { mrrCents: number; paidUsers: number; placeholder?: boolean };
+  analytics: { views: number; link_clicks: number; raw_events: number };
   recent: {
     signups: Array<{
       id: string;
@@ -112,6 +113,32 @@ export default function AdminOverviewPage() {
               hint={`${stats.reports.resolved} resolved`}
               stroke="#f59e0b"
             />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <StatCard
+              label="Card views (7d)"
+              value={stats.analytics?.views ?? 0}
+              hint="Platform-wide rollups"
+              stroke="#06b6d4"
+            />
+            <StatCard
+              label="Link clicks (7d)"
+              value={stats.analytics?.link_clicks ?? 0}
+              hint={`${(stats.analytics?.raw_events ?? 0).toLocaleString()} raw events`}
+              stroke="#ec4899"
+            />
+            <Link
+              href="/admin/analytics"
+              className="glass p-4 sm:p-5 rounded-3xl shadow-soft flex flex-col justify-center gap-2 hover:ring-2 hover:ring-primary-400/40 transition-all"
+            >
+              <h3 className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+                Full analytics
+              </h3>
+              <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                Open platform dashboard →
+              </p>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">

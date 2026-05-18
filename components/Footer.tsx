@@ -54,6 +54,7 @@ export default function Footer() {
   return (
     <>
       <footer
+        id="site-footer"
         className={`mt-16 sm:mt-20 border-t border-gray-200/60 dark:border-gray-800/60 backdrop-blur-sm ${footerSurface}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">

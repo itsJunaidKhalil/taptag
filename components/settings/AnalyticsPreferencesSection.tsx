@@ -8,23 +8,32 @@ import { Skeleton } from "@/components/ui/Skeleton";
 interface AnalyticsPreferencesSectionProps {
   profileId: string | undefined;
   initialShowPublicViewCount?: boolean;
+  initialWeeklyDigestEnabled?: boolean;
 }
 
 export default function AnalyticsPreferencesSection({
   profileId,
   initialShowPublicViewCount = false,
+  initialWeeklyDigestEnabled = true,
 }: AnalyticsPreferencesSectionProps) {
-  const [enabled, setEnabled] = useState(initialShowPublicViewCount);
-  const [saving, setSaving] = useState(false);
+  const [showPublicCount, setShowPublicCount] = useState(initialShowPublicViewCount);
+  const [weeklyDigest, setWeeklyDigest] = useState(initialWeeklyDigestEnabled);
+  const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
-    setEnabled(initialShowPublicViewCount);
+    setShowPublicCount(initialShowPublicViewCount);
   }, [initialShowPublicViewCount]);
 
-  const handleToggle = async () => {
+  useEffect(() => {
+    setWeeklyDigest(initialWeeklyDigestEnabled);
+  }, [initialWeeklyDigestEnabled]);
+
+  const saveField = async (
+    field: "show_public_view_count" | "weekly_digest_enabled",
+    next: boolean,
+  ) => {
     if (!profileId) return;
-    const next = !enabled;
-    setSaving(true);
+    setSaving(field);
     try {
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token;
@@ -41,7 +50,7 @@ export default function AnalyticsPreferencesSection({
         },
         body: JSON.stringify({
           id: profileId,
-          show_public_view_count: next,
+          [field]: next,
         }),
       });
 
@@ -50,12 +59,17 @@ export default function AnalyticsPreferencesSection({
         throw new Error(body.error || "Could not save preference");
       }
 
-      setEnabled(next);
-      toast.success(next ? "Public view count enabled" : "Public view count hidden");
+      if (field === "show_public_view_count") {
+        setShowPublicCount(next);
+        toast.success(next ? "Public view count enabled" : "Public view count hidden");
+      } else {
+        setWeeklyDigest(next);
+        toast.success(next ? "Weekly digest enabled" : "Weekly digest disabled");
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not save");
     } finally {
-      setSaving(false);
+      setSaving(null);
     }
   };
 
@@ -78,13 +92,13 @@ export default function AnalyticsPreferencesSection({
         visitor data.
       </p>
 
-      <label className="flex items-start gap-3 cursor-pointer">
+      <label className="flex items-start gap-3 cursor-pointer mb-4">
         <input
           type="checkbox"
           className="mt-1 w-4 h-4 rounded accent-indigo-600"
-          checked={enabled}
-          disabled={saving}
-          onChange={handleToggle}
+          checked={showPublicCount}
+          disabled={saving === "show_public_view_count"}
+          onChange={() => saveField("show_public_view_count", !showPublicCount)}
         />
         <span>
           <span className="font-semibold text-gray-900 dark:text-white text-sm">
@@ -92,6 +106,24 @@ export default function AnalyticsPreferencesSection({
           </span>
           <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
             Displays &ldquo;X views this week&rdquo; on your card to encourage engagement.
+          </span>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          className="mt-1 w-4 h-4 rounded accent-indigo-600"
+          checked={weeklyDigest}
+          disabled={saving === "weekly_digest_enabled"}
+          onChange={() => saveField("weekly_digest_enabled", !weeklyDigest)}
+        />
+        <span>
+          <span className="font-semibold text-gray-900 dark:text-white text-sm">
+            Weekly analytics email
+          </span>
+          <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
+            A short summary of views and clicks each Monday when you had activity.
           </span>
         </span>
       </label>

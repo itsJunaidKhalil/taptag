@@ -1,18 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useEditorStore, draftToProfileCard } from "@/lib/store/editorStore";
 import ProfileCard from "@/components/profile/ProfileCard";
 import PhoneFrame from "@/components/profile/PhoneFrame";
 
 /**
- * Floating preview drawer.
- * - Desktop (lg+): fixed right column, collapsible.
+ * Live preview panel.
+ * - Desktop (lg+): sticky right column in the edit page grid (not fixed — avoids
+ *   viewport clipping and footer overlap hacks).
  * - Mobile: bottom sheet (Eye button toggles it open).
  */
+
+/** Pixels of the global footer currently visible — shrinks sticky preview max-height. */
+function useFooterClearance() {
+  const [clearance, setClearance] = useState(0);
+
+  useEffect(() => {
+    const footer = document.getElementById("site-footer");
+    if (!footer) return;
+
+    const update = () => {
+      const { top } = footer.getBoundingClientRect();
+      setClearance(Math.max(0, Math.ceil(window.innerHeight - top)));
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    const ro = new ResizeObserver(update);
+    ro.observe(footer);
+
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      ro.disconnect();
+    };
+  }, []);
+
+  return clearance;
+}
+
 export default function PreviewDrawer() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const footerClearance = useFooterClearance();
   const draft = useEditorStore((s) => s.draft);
   const links = useEditorStore((s) => s.links);
   const userId = useEditorStore((s) => s.userId);
@@ -20,18 +52,15 @@ export default function PreviewDrawer() {
 
   return (
     <>
-      {/* Desktop drawer */}
-      {/* lg: bottom offset reserves vertical space for the global footer so the
-          phone mockup does not overlap Privacy / Cookie links (layout Footer is
-          after page content but sits under this fixed panel without z-index). */}
+      {/* Desktop preview column */}
       <aside
-        className={`hidden lg:flex fixed top-16 right-0 z-50 flex-col bottom-0 lg:bottom-72 transition-all duration-300 overscroll-y-contain ${
-          collapsed ? "w-12 min-w-12 overflow-visible" : "w-[400px] min-w-[400px] overflow-hidden"
+        className={`relative hidden lg:flex min-h-0 min-w-0 flex-col self-stretch transition-all duration-300 ${
+          collapsed ? "w-12 shrink-0" : "w-full"
         }`}
       >
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -left-3 top-6 w-7 h-14 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-l-xl shadow-soft flex items-center justify-center hover:scale-105 transition-transform"
+          className="absolute -left-3 top-6 z-10 w-7 h-14 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-l-xl shadow-soft flex items-center justify-center hover:scale-105 transition-transform"
           aria-label={collapsed ? "Show preview" : "Hide preview"}
         >
           <svg
@@ -47,20 +76,31 @@ export default function PreviewDrawer() {
         </button>
 
         {!collapsed && (
-          <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center overflow-y-auto overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 px-6 pb-6 pt-8 scrollbar-hide dark:from-gray-900 dark:to-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-soft-lg">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">
-              Live preview
-            </p>
-            {/* data-theme wrapper so PhoneFrame and ProfileCard share the same
-                CSS variable scope and the screen bg actually updates with theme */}
-            <div data-theme={draft.theme || "default"} className="min-w-0 shrink-0">
-              <PhoneFrame>
-                <ProfileCard profile={profile} links={links} theme={draft.theme} compact />
-              </PhoneFrame>
+          <div
+            className="sticky top-16 z-10 flex w-full min-w-0 flex-col border-l border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 shadow-soft-lg dark:border-gray-800 dark:from-gray-900 dark:to-gray-950"
+            style={{
+              maxHeight: `calc(100dvh - 4rem - ${footerClearance}px)`,
+              bottom: footerClearance > 0 ? footerClearance : undefined,
+            }}
+          >
+            <div className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto overflow-x-hidden px-4 pb-6 pt-8 scrollbar-hide sm:px-6">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Live preview
+              </p>
+              {/* data-theme wrapper so PhoneFrame and ProfileCard share the same
+                  CSS variable scope and the screen bg actually updates with theme */}
+              <div
+                data-theme={draft.theme || "default"}
+                className="flex w-full min-w-0 max-w-[320px] justify-center"
+              >
+                <PhoneFrame>
+                  <ProfileCard profile={profile} links={links} theme={draft.theme} compact />
+                </PhoneFrame>
+              </div>
+              <p className="mt-4 max-w-[260px] text-center text-xs text-gray-500 dark:text-gray-400">
+                Updates instantly as you edit — visitors see the full-size version.
+              </p>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center max-w-[260px]">
-              Updates instantly as you edit — visitors see the full-size version.
-            </p>
           </div>
         )}
       </aside>
@@ -95,7 +135,7 @@ export default function PreviewDrawer() {
             onClick={() => setMobileOpen(false)}
           />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-t-3xl shadow-soft-lg px-4 pt-4 pb-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom">
-            <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-4" />
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700" />
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Live preview
@@ -121,7 +161,7 @@ export default function PreviewDrawer() {
               </button>
             </div>
             <div className="flex justify-center pb-2">
-              <div data-theme={draft.theme || "default"}>
+              <div data-theme={draft.theme || "default"} className="w-full max-w-[320px]">
                 <PhoneFrame>
                   <ProfileCard profile={profile} links={links} theme={draft.theme} compact />
                 </PhoneFrame>
