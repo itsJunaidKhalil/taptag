@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { adminFetch } from "@/lib/adminFetch";
+import { adminDownloadCsv } from "@/lib/adminDownloadCsv";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { toast } from "sonner";
 
 interface UserAnalytics {
   days: number;
@@ -38,6 +40,7 @@ function formatReferrer(referrer: string | null) {
 export default function AdminUserAnalytics({ userId }: { userId: string }) {
   const [data, setData] = useState<UserAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -70,7 +73,29 @@ export default function AdminUserAnalytics({ userId }: { userId: string }) {
 
   return (
     <section className="glass p-5 sm:p-6 rounded-3xl shadow-soft">
-      <h2 className="text-lg font-heading font-semibold mb-3">Analytics (last {data.days}d)</h2>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <h2 className="text-lg font-heading font-semibold">Analytics (last {data.days}d)</h2>
+        <button
+          type="button"
+          disabled={exporting}
+          onClick={async () => {
+            setExporting(true);
+            try {
+              await adminDownloadCsv(
+                `/api/admin/users/${userId}/analytics/export?days=${data.days}`,
+                `user-${userId.slice(0, 8)}.csv`,
+              );
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : "Export failed");
+            } finally {
+              setExporting(false);
+            }
+          }}
+          className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60 shrink-0"
+        >
+          {exporting ? "…" : "CSV"}
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <MiniStat label="Views" value={data.period.views} />
