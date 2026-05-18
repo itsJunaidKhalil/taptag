@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { ANALYTICS_DASHBOARD_DAYS } from "@/lib/analytics/dashboard";
+import { rowsToCsv } from "@/lib/analytics/csv";
 
 export const dynamic = "force-dynamic";
-
-function csvEscape(value: string | number | null | undefined): string {
-  const s = value == null ? "" : String(value);
-  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-  return s;
-}
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -69,14 +64,10 @@ export async function GET(req: NextRequest) {
     "utm_campaign",
   ];
 
-  const lines = [headers.join(",")];
-  for (const row of events ?? []) {
-    lines.push(
-      headers.map((h) => csvEscape((row as Record<string, string | null>)[h])).join(","),
-    );
-  }
-
-  const csv = lines.join("\n");
+  const csv = rowsToCsv(
+    headers,
+    (events ?? []) as Record<string, string | null>[],
+  );
   const filename = `taptag-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
 
   return new NextResponse(csv, {

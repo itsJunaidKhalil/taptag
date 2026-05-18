@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AdminShell from "@/components/admin/AdminShell";
 import { adminFetch } from "@/lib/adminFetch";
+import { adminDownloadCsv } from "@/lib/adminDownloadCsv";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "sonner";
 
@@ -50,15 +51,18 @@ export default function AdminAnalyticsPage() {
       title="Platform analytics"
       description="Aggregate card traffic across all users (non-bot events)."
       actions={
-        <select
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-          className="px-3 py-2 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-800/70 text-sm font-medium"
-        >
-          <option value={7}>Last 7 days</option>
-          <option value={14}>Last 14 days</option>
-          <option value={30}>Last 30 days</option>
-        </select>
+        <>
+          <select
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            className="px-3 py-2 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-800/70 text-sm font-medium"
+          >
+            <option value={7}>Last 7 days</option>
+            <option value={14}>Last 14 days</option>
+            <option value={30}>Last 30 days</option>
+          </select>
+          <ExportCsvButton days={days} />
+        </>
       }
     >
       {loading || !data ? (
@@ -136,6 +140,32 @@ export default function AdminAnalyticsPage() {
         </>
       )}
     </AdminShell>
+  );
+}
+
+function ExportCsvButton({ days }: { days: number }) {
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await adminDownloadCsv(`/api/admin/analytics/export?days=${days}`, `platform-${days}d.csv`);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleExport}
+      disabled={exporting}
+      className="px-3 py-2 rounded-2xl text-sm font-semibold border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
+    >
+      {exporting ? "Exporting…" : "Export CSV"}
+    </button>
   );
 }
 

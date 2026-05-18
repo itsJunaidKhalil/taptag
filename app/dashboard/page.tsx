@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { getProfileById } from "@/lib/getProfile";
 import Navbar from "@/components/Navbar";
 import QRCode from "@/components/QRCode";
+import { profileUrlWithQrSource } from "@/lib/analytics/qr-landing";
 import { toast } from "sonner";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -200,7 +201,7 @@ export default function DashboardPage() {
 
               <div className="pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
                 <QRCode
-                  url={profileUrl}
+                  url={profileUrlWithQrSource(baseUrl, profile.username)}
                   size={200}
                   cardProfile={{
                     full_name: profile.full_name,

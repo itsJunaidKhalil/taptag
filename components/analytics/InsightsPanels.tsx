@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { BreakdownRow } from "@/lib/analytics/insights";
+import type { FunnelStep } from "@/lib/analytics/funnel";
+import AnalyticsFunnel from "@/components/analytics/AnalyticsFunnel";
+import CityHeatmap from "@/components/analytics/CityHeatmap";
 
 interface InsightsData {
   days: number;
   referrers: BreakdownRow[];
   utm: BreakdownRow[];
   countries: BreakdownRow[];
+  cities: BreakdownRow[];
   devices: BreakdownRow[];
+  funnel: FunnelStep[];
 }
 
 function PanelSection({
@@ -75,33 +80,50 @@ export default function InsightsPanels() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 sm:mb-8">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-36" rounded="3xl" />
-        ))}
-      </div>
+      <>
+        <Skeleton className="h-48 w-full mb-6" rounded="3xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 sm:mb-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-36" rounded="3xl" />
+          ))}
+        </div>
+      </>
     );
   }
 
   if (!data) return null;
 
-  const hasAny =
-    data.referrers.length + data.utm.length + data.countries.length + data.devices.length > 0;
-  if (!hasAny) return null;
+  const hasTraffic =
+    data.referrers.length +
+      data.utm.length +
+      data.countries.length +
+      data.devices.length +
+      data.cities.length >
+    0;
+  const hasFunnel = data.funnel?.some((s) => s.count > 0);
+
+  if (!hasTraffic && !hasFunnel) return null;
 
   return (
-    <div className="mb-6 sm:mb-8">
-      <h2 className="text-lg sm:text-xl font-heading font-semibold mb-4">Traffic insights</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <PanelSection
-          title="Top referrers"
-          rows={data.referrers}
-          empty="No referrer data yet."
-        />
-        <PanelSection title="UTM campaigns" rows={data.utm} empty="No UTM tags captured yet." />
-        <PanelSection title="Countries" rows={data.countries} empty="No geo data yet." />
-        <PanelSection title="Devices" rows={data.devices} empty="No device data yet." />
-      </div>
-    </div>
+    <>
+      {hasFunnel && data.funnel && <AnalyticsFunnel steps={data.funnel} />}
+
+      {hasTraffic && (
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-heading font-semibold mb-4">Traffic insights</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CityHeatmap cities={data.cities ?? []} />
+            <PanelSection
+              title="Top referrers"
+              rows={data.referrers}
+              empty="No referrer data yet."
+            />
+            <PanelSection title="UTM campaigns" rows={data.utm} empty="No UTM tags captured yet." />
+            <PanelSection title="Countries" rows={data.countries} empty="No geo data yet." />
+            <PanelSection title="Devices" rows={data.devices} empty="No device data yet." />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

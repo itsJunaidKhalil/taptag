@@ -15,6 +15,7 @@ import ReportModal from "./ui/ReportModal";
 import EmptyState from "./ui/EmptyState";
 import { SkeletonLinkRow } from "./ui/Skeleton";
 import { trackAnalyticsEvent } from "@/lib/analytics/track-client";
+import { isQrLandingSearch, profileUrlWithQrSource } from "@/lib/analytics/qr-landing";
 import PublicViewCountBadge from "@/components/profile/PublicViewCountBadge";
 import {
   DndContext,
@@ -73,6 +74,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
   const [loadingLinks, setLoadingLinks] = useState(true);
   const linksFetchedRef = useRef(false);
   const profileViewTrackedRef = useRef(false);
+  const qrScanTrackedRef = useRef(false);
   const [localTheme, setLocalTheme] = useState<ThemeName>((profile.theme as ThemeName) || "default");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -127,11 +129,22 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
     trackProfileView();
     const onConsentChanged = () => {
       profileViewTrackedRef.current = false;
+      qrScanTrackedRef.current = false;
       trackProfileView();
     };
     window.addEventListener("taptag-consent-changed", onConsentChanged);
     return () => window.removeEventListener("taptag-consent-changed", onConsentChanged);
   }, [trackProfileView]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || qrScanTrackedRef.current) return;
+    if (!isQrLandingSearch(window.location.search)) return;
+    qrScanTrackedRef.current = true;
+    trackAnalyticsEvent({
+      profile_id: profile.id,
+      event_type: "qr_scan",
+    });
+  }, [profile.id]);
 
   const handleShare = async () => {
     const baseUrl =
@@ -157,6 +170,17 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+    trackAnalyticsEvent({
+      profile_id: profile.id,
+      event_type: "link_share",
+    });
+  };
+
+  const trackContactSave = () => {
+    trackAnalyticsEvent({
+      profile_id: profile.id,
+      event_type: "contact_save",
+    });
   };
 
   const handleLinkClick = async (linkId: string) => {
@@ -571,6 +595,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 {profile.phone && (
                   <a
                     href={`tel:${profile.phone}`}
+                    onClick={trackContactSave}
                     className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
                   >
                     <div className="w-12 h-12 glass rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform flex-shrink-0 border border-white/20">
@@ -599,6 +624,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 {displayContact && (
                   <a
                     href={`mailto:${displayContact}`}
+                    onClick={trackContactSave}
                     className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
                   >
                     <div className="w-12 h-12 glass rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform flex-shrink-0 border border-white/20">
@@ -629,6 +655,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                     href={profile.website}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={trackContactSave}
                     className="flex items-center gap-4 p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-white/5 transition-all group"
                   >
                     <div className="w-12 h-12 glass rounded-xl flex items-center justify-center shadow-soft group-hover:scale-110 transition-transform flex-shrink-0 border border-white/20">
@@ -664,12 +691,13 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                 <a
                   href={`/api/vcf/${profile.username}`}
                   download
-                  onClick={() =>
+                  onClick={() => {
                     trackAnalyticsEvent({
                       profile_id: profile.id,
                       event_type: "vcf_download",
-                    })
-                  }
+                    });
+                    trackContactSave();
+                  }}
                   className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-primary text-white rounded-2xl hover:opacity-90 transition-all duration-300 text-base sm:text-lg font-semibold shadow-soft-lg hover:shadow-glow transform hover:scale-105"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -708,7 +736,7 @@ export default function ProfilePageContent({ profile }: ProfilePageProps) {
                     </svg>
                   </button>
                   <QRCode
-                    url={`${baseUrl}/${profile.username}`}
+                    url={profileUrlWithQrSource(baseUrl, profile.username)}
                     size={180}
                     showTitle
                     showDownload
