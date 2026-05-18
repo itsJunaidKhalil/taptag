@@ -2,14 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { adminFetch } from "@/lib/adminFetch";
-analytics/phase4-admin
 import { adminDownloadCsv } from "@/lib/adminDownloadCsv";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "sonner";
-
-import { Skeleton } from "@/components/ui/Skeleton";
-
-main
 
 interface UserAnalytics {
   days: number;
@@ -45,11 +40,7 @@ function formatReferrer(referrer: string | null) {
 export default function AdminUserAnalytics({ userId }: { userId: string }) {
   const [data, setData] = useState<UserAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
-
-analytics/phase4-admin
   const [exporting, setExporting] = useState(false);
-
-main
 
   useEffect(() => {
     (async () => {
@@ -82,8 +73,6 @@ main
 
   return (
     <section className="glass p-5 sm:p-6 rounded-3xl shadow-soft">
-
- analytics/phase4-admin
       <div className="flex items-start justify-between gap-3 mb-3">
         <h2 className="text-lg font-heading font-semibold">Analytics (last {data.days}d)</h2>
         <button
@@ -107,9 +96,6 @@ main
           {exporting ? "…" : "CSV"}
         </button>
       </div>
-
-      <h2 className="text-lg font-heading font-semibold mb-3">Analytics (last {data.days}d)</h2>
-main
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <MiniStat label="Views" value={data.period.views} />

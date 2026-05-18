@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import AdminShell from "@/components/admin/AdminShell";
 import { adminFetch } from "@/lib/adminFetch";
-analytics/phase4-admin
 import { adminDownloadCsv } from "@/lib/adminDownloadCsv";
-main
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "sonner";
 
@@ -53,7 +51,6 @@ export default function AdminAnalyticsPage() {
       title="Platform analytics"
       description="Aggregate card traffic across all users (non-bot events)."
       actions={
-analytics/phase4-admin
         <>
           <select
             value={days}
@@ -66,16 +63,6 @@ analytics/phase4-admin
           </select>
           <ExportCsvButton days={days} />
         </>
-        <select
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-          className="px-3 py-2 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white/70 dark:bg-gray-800/70 text-sm font-medium"
-        >
-          <option value={7}>Last 7 days</option>
-          <option value={14}>Last 14 days</option>
-          <option value={30}>Last 30 days</option>
-        </select>
-main
       }
     >
       {loading || !data ? (
@@ -156,7 +143,6 @@ main
   );
 }
 
-analytics/phase4-admin
 function ExportCsvButton({ days }: { days: number }) {
   const [exporting, setExporting] = useState(false);
 
@@ -183,7 +169,6 @@ function ExportCsvButton({ days }: { days: number }) {
   );
 }
 
-main
 function MetricCard({
   label,
   value,
