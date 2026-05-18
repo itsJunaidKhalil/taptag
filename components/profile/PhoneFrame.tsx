@@ -8,7 +8,7 @@ interface PhoneFrameProps {
 
 export default function PhoneFrame({ children }: PhoneFrameProps) {
   return (
-    <div className="relative mx-auto" style={{ width: 320 }}>
+    <div className="relative mx-auto w-full max-w-[320px]">
       <div
         className="relative bg-black rounded-[3rem] p-2.5 shadow-2xl"
         style={{
@@ -28,8 +28,8 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
           phone "screen", not just the text/links inside ProfileCard.
         */}
         <div
-          className="relative rounded-[2.4rem] overflow-hidden"
-          style={{ height: 600, background: "var(--bg, #ffffff)" }}
+          className="relative overflow-hidden rounded-[2.4rem]"
+          style={{ aspectRatio: "320 / 600", background: "var(--bg, #ffffff)" }}
         >
           {/* Dynamic island */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 w-24 h-6 bg-black rounded-full" />

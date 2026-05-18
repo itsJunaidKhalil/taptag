@@ -45,6 +45,8 @@ export async function GET(req: NextRequest) {
     if (diff >= 0 && diff < 7) signupBuckets[6 - diff] += 1;
   }
 
+  const since7dDate = new Date(now - 7 * DAY).toISOString().slice(0, 10);
+
   const [
     softDeletedRes,
     reportsOpenRes,
@@ -53,6 +55,8 @@ export async function GET(req: NextRequest) {
     onboardedRes,
     recentReportsRes,
     recentSignupsRes,
+    analyticsDaily7dRes,
+    analyticsEvents7dRes,
   ] = await Promise.all([
     admin
       .from("profiles")
@@ -82,7 +86,23 @@ export async function GET(req: NextRequest) {
       .gte("created_at", since30d)
       .order("created_at", { ascending: false })
       .limit(5),
+    admin
+      .from("analytics_daily")
+      .select("views, link_clicks")
+      .gte("date", since7dDate),
+    admin
+      .from("analytics_events")
+      .select("id", { count: "exact", head: true })
+      .eq("is_bot", false)
+      .gte("created_at", since7d),
   ]);
+
+  const daily7d = analyticsDaily7dRes.data ?? [];
+  const platformAnalytics7d = {
+    views: daily7d.reduce((s, r) => s + (r.views ?? 0), 0),
+    link_clicks: daily7d.reduce((s, r) => s + (r.link_clicks ?? 0), 0),
+    raw_events: analyticsEvents7dRes.count ?? 0,
+  };
 
   return NextResponse.json({
     users: {
@@ -106,6 +126,7 @@ export async function GET(req: NextRequest) {
       paidUsers: 0,
       placeholder: true,
     },
+    analytics: platformAnalytics7d,
     recent: {
       signups: recentSignupsRes.data ?? [],
       reports: recentReportsRes.data ?? [],

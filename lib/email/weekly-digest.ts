@@ -19,7 +19,8 @@ export async function fetchWeeklyDigestRecipients(): Promise<DigestRecipient[]> 
     .from("profiles")
     .select("id, email, username")
     .is("deleted_at", null)
-    .not("email", "is", null);
+    .not("email", "is", null)
+    .eq("weekly_digest_enabled", true);
 
   if (error || !profiles?.length) return [];
 
@@ -100,7 +101,7 @@ export function buildDigestHtml(r: DigestRecipient, appUrl: string): string {
       <p>Your card was viewed <strong>${r.views}</strong> time${r.views === 1 ? "" : "s"} and received <strong>${r.clicks}</strong> link click${r.clicks === 1 ? "" : "s"} in the last 7 days.</p>
       ${topLine}
       <p><a href="${appUrl}/dashboard/analytics">View full analytics</a> · <a href="${appUrl}${profilePath}">View your card</a></p>
-      <p style="font-size:12px;color:#666">You receive this because you have a TapTag account. Reply to privacy@taptag.biz to opt out of product emails.</p>
+      <p style="font-size:12px;color:#666">Turn off weekly emails in Account Settings → Analytics. Reply to privacy@taptag.biz for other requests.</p>
     </div>
   `;
 }

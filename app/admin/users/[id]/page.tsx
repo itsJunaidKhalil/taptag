@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { adminFetch } from "@/lib/adminFetch";
 import { toast } from "sonner";
 import Modal from "@/components/ui/Modal";
+import AdminUserAnalytics from "@/components/admin/AdminUserAnalytics";
 
 interface Detail {
   user: {
@@ -186,6 +187,8 @@ export default function AdminUserDetailPage() {
               )}
             </section>
 
+            {detail.profile && <AdminUserAnalytics userId={id} />}
+
             <section className="glass p-5 sm:p-6 rounded-3xl shadow-soft">
               <h2 className="text-lg font-heading font-semibold mb-3">
                 Links ({detail.links.length})
@@ -280,7 +283,7 @@ export default function AdminUserDetailPage() {
                   }
                 />
                 <Field
-                  label="Analytics events"
+                  label="Legacy analytics rows"
                   value={detail.analyticsCount.toLocaleString()}
                 />
                 <Field label="Role" value={detail.profile?.role || "user"} />

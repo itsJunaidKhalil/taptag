@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Sparkline from "@/components/charts/Sparkline";
 import AnalyticsTrendChart from "@/components/charts/AnalyticsTrendChart";
 import LinkDrilldownModal from "@/components/analytics/LinkDrilldownModal";
+import InsightsPanels from "@/components/analytics/InsightsPanels";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonCard, Skeleton } from "@/components/ui/Skeleton";
 import PlatformIcon from "@/components/PlatformIcon";
@@ -109,6 +110,7 @@ export default function AnalyticsPage() {
   const [linkStats, setLinkStats] = useState<LinkWithStats[]>([]);
   const [drilldownLink, setDrilldownLink] = useState<LinkWithStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -121,6 +123,30 @@ export default function AnalyticsPage() {
       loadLinkStats();
     });
   }, [router]);
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (!token) return;
+      const res = await fetch("/api/dashboard/analytics/export", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `taptag-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      /* optional toast */
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const loadLinkStats = async () => {
     try {
@@ -253,13 +279,25 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-bg via-white to-primary-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-primary-900/20">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-heading font-bold gradient-text mb-2">
-            Analytics
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Last {DAYS_IN_WINDOW} days
-          </p>
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-heading font-bold gradient-text mb-2">
+              Analytics
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Last {DAYS_IN_WINDOW} days
+            </p>
+          </div>
+          {!loading && hasData && (
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={exporting}
+              className="px-4 py-2 rounded-2xl text-sm font-semibold border border-gray-300 dark:border-gray-600 hover:bg-white/60 dark:hover:bg-gray-800/60 disabled:opacity-60 shrink-0"
+            >
+              {exporting ? "Exporting…" : "Export CSV"}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -353,6 +391,8 @@ export default function AnalyticsPage() {
                 )}
               </div>
             )}
+
+            <InsightsPanels />
 
             {trendData.length > 0 && (
               <div className="glass p-4 sm:p-6 rounded-3xl shadow-soft-lg mb-6 sm:mb-8">

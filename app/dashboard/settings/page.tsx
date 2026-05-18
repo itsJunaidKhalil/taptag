@@ -18,6 +18,7 @@ interface ProfileLite {
   deleted_at: string | null;
   scheduled_deletion_at: string | null;
   show_public_view_count?: boolean | null;
+  weekly_digest_enabled?: boolean | null;
 }
 
 export default function SettingsPage() {
@@ -107,6 +108,7 @@ export default function SettingsPage() {
             <AnalyticsPreferencesSection
               profileId={profile?.id}
               initialShowPublicViewCount={!!profile?.show_public_view_count}
+              initialWeeklyDigestEnabled={profile?.weekly_digest_enabled !== false}
             />
 
             <ExportDataSection />
